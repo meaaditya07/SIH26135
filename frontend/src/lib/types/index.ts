@@ -288,3 +288,33 @@ export interface PipelineResponse {
   stages: Record<string, number>;
   hired: number;
 }
+
+export type ReportFormat = "csv" | "xlsx" | "pdf";
+
+export interface ReportTypeInfo {
+  report_type: string;
+  label: string;
+  formats: ReportFormat[];
+}
+
+export interface AvailableReports {
+  reports: ReportTypeInfo[];
+  formats: ReportFormat[];
+}
+
+export interface AnalyticsSnapshot {
+  generated_at: string;
+  counts: {
+    total_candidates: number;
+    total_training_partners: number;
+    total_employers: number;
+    total_enrollments: number;
+    total_courses: number;
+  };
+  outcomes: {
+    total_outcomes: number;
+    total_employed: number;
+    overall_placement_rate: number | null;
+  };
+  placements_per_scheme: Record<string, number>;
+}

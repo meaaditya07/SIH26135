@@ -16,6 +16,9 @@ import type {
   JobApplicantsResponse,
   PipelineResponse,
   ApplicationStatus,
+  AvailableReports,
+  AnalyticsSnapshot,
+  ReportFormat,
 } from "@/lib/types";
 
 export function useDashboardStats() {
@@ -226,4 +229,50 @@ export async function updateApplicationStatus(
 ) {
   const res = await api.patch(`/applications/${applicationId}/status`, { status });
   return res.data as JobApplication;
+}
+
+export function useAvailableReports() {
+  const [data, setData] = useState<AvailableReports | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/reports/available")
+      .then((res) => setData(res.data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { data, loading };
+}
+
+export function useAnalyticsSnapshot() {
+  const [data, setData] = useState<AnalyticsSnapshot | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/reports/snapshot")
+      .then((res) => setData(res.data))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { data, loading };
+}
+
+export async function downloadReport(reportType: string, format: ReportFormat) {
+  const res = await api.get(`/reports/${reportType}.${format}`, {
+    responseType: "blob",
+  });
+  const disposition = res.headers["content-disposition"] ?? "";
+  const match = /filename="([^"]+)"/.exec(disposition);
+  const fallback = `skilltrace-${reportType}.${format}`;
+  const filename = match ? match[1] : fallback;
+
+  const url = window.URL.createObjectURL(res.data);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 }

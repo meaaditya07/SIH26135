@@ -70,3 +70,20 @@ Vocational education outcome tracking & labor analytics platform.
   existing `/candidates/me` treating `sub` as candidate id is a known inconsistency.
 - Migration `backend/alembic/versions/0003_job_applications.py` (chains 0003→0002).
 
+## Reporting & Exports (Sprint 8)
+- Router `backend/app/api/v1/reports.py` under `/api/v1/reports`:
+  `GET /available` (catalog), `GET /snapshot` (on-demand analytics JSON), and the
+  parameterized `GET /{report_type}.{fmt}` where `fmt ∈ {csv, xlsx, pdf}` and
+  `report_type` is whitelisted via `reporting_service.is_reportable`. Static
+  paths (`/available`, `/snapshot`) are declared BEFORE `/{report_type}.{fmt}`.
+- All byte-building lives in the pure, DB-agnostic
+  `backend/app/services/reporting_service.py` (`to_csv`, `to_xlsx`, `to_pdf`,
+  `report_columns`, `REPORT_LABELS`). The router only queries and converts rows
+  via `_row_to_dict`; keep any new report pure-testable there.
+- Export deps installed: `reportlab` (PDF), `openpyxl` (XLSX). Test the builders
+  in `backend/tests/services/test_reporting.py` (no DB needed).
+- Frontend export center: `frontend/src/app/gov/reports/page.tsx`, download
+  helper `downloadReport` in `frontend/src/lib/hooks/useDashboard.ts` (axios
+  `responseType: "blob"` + content-disposition filename).
+
+

@@ -28,16 +28,20 @@ completed/planned so future sessions have the single source of truth.
 - **Sprint 7 — Employer hiring pipeline**: `JobApplication` + `application_status`
   lifecycle, `/api/v1/applications/*` endpoints, employer kanban pipeline board,
   candidate apply + my-applications flow.
+- **Sprint 8 — Reporting & exports**: `/api/v1/reports/*` endpoints for
+  CSV / XLSX / PDF export of scheme-roi, skill-gaps, outcomes, candidates, and
+  applications reports; on-demand analytics snapshot;
+  `backend/app/services/reporting_service.py` (pure byte-builder helpers);
+  frontend gov export center (`/gov/reports`) with per-report CSV/Excel/PDF
+  download buttons. (Deps: `reportlab`, `openpyxl`.)
 
 ## Metrics (latest verified)
-- Backend endpoints: 57 under `/api/v1/...`
-- Tests: 36 passing (backend tests + workers + ml)
+- Backend endpoints: 59 under `/api/v1/...`
+- Tests: 42 passing (backend tests + workers + ml)
 - Frontend gate: `npx tsc --noEmit` clean (never `npm run build` — broken SWC
   mirror in this environment)
 
 ## Proposed Next Sprints (candidates)
-- **Sprint 8 — Reporting & exports**: PDF/CSV export for gov/partner, scheduled
-  analytics snapshots, printable scheme-ROI report.
 - **Sprint 9 — Notifications & SMS engine**: worker tasks for WhatsApp/SMS
   (job alerts, survey reminders), templates, delivery logs/analytics.
 - **Sprint 10 — Multi-role auth hardening & RBAC**: refresh tokens, audit

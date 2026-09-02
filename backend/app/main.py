@@ -9,7 +9,7 @@ from app.core.exceptions import SkillTraceException
 from app.api.v1 import (
     candidates, training_partners, employers, courses, auth, skill_gap, analytics,
     enrollments, outcomes, job_postings, surveys, webhooks, matches, ml,
-    applications,
+    applications, reports,
 )
 
 settings = get_settings()
@@ -80,6 +80,7 @@ def create_app() -> FastAPI:
     app.include_router(
         applications.router, prefix="/api/v1/applications", tags=["Hiring Pipeline"]
     )
+    app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports & Exports"])
 
     return app
 
