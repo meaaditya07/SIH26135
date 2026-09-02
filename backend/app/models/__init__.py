@@ -14,6 +14,7 @@ from app.models.skill_gap import SkillGapScore
 from app.models.scheme_analytics import SchemeAnalytics
 from app.models.candidate_job_match import CandidateJobMatch
 from app.models.job_application import JobApplication
+from app.models.notification import Notification, NotificationTemplate
 
 __all__ = [
     "User",
@@ -33,4 +34,6 @@ __all__ = [
     "SchemeAnalytics",
     "CandidateJobMatch",
     "JobApplication",
+    "Notification",
+    "NotificationTemplate",
 ]

@@ -19,6 +19,8 @@ import type {
   AvailableReports,
   AnalyticsSnapshot,
   ReportFormat,
+  AppNotification,
+  NotificationStats,
 } from "@/lib/types";
 
 export function useDashboardStats() {
@@ -275,4 +277,50 @@ export async function downloadReport(reportType: string, format: ReportFormat) {
   link.click();
   link.remove();
   window.URL.revokeObjectURL(url);
+}
+
+export function useMyNotifications(status?: string) {
+  const [data, setData] = useState<AppNotification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const params = status ? { status } : {};
+    api.get("/notifications/mine", { params })
+      .then((res) => setData(res.data ?? []))
+      .catch(() => setData([]))
+      .finally(() => setLoading(false));
+  }, [status]);
+
+  return { data, loading };
+}
+
+export function useNotificationStats() {
+  const [data, setData] = useState<NotificationStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/notifications/stats")
+      .then((res) => setData(res.data))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { data, loading };
+}
+
+export async function markNotificationRead(notificationId: string) {
+  const res = await api.patch(`/notifications/${notificationId}/read`);
+  return res.data;
+}
+
+export async function sendNotification(payload: {
+  recipient_type: string;
+  recipient_id?: string;
+  channel: "whatsapp" | "sms";
+  kind: string;
+  template_name: string;
+  variables?: Record<string, string>;
+}) {
+  const res = await api.post("/notifications/send", payload);
+  return res.data;
 }

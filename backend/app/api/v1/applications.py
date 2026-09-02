@@ -11,13 +11,20 @@ from app.models.user import User
 from app.models.candidate import Candidate
 from app.models.job_posting import JobPosting
 from app.models.job_application import JobApplication
+from app.models.notification import Notification
 from app.services.application_service import (
     STATUS_TRANSITIONS,
     can_transition,
     funnel_counts,
     is_valid_status,
 )
+from app.services.notification_service import (
+    APPLICATION_STATUS_NOTIFICATIONS,
+    build_application_status_variables,
+    render_template,
+)
 from app.services.skill_gap_engine import compute_match_score
+from app.services.worker_queue import enqueue_delivery
 
 router = APIRouter()
 
@@ -222,10 +229,65 @@ async def update_application_status(
             detail=f"Cannot move from '{current}' to '{body.status}'. Allowed: {allowed or 'none (terminal)'}",
         )
 
+    job_row = (
+        await db.execute(select(JobPosting).where(JobPosting.id == app.job_posting_id))
+    ).scalar_one_or_none()
+
     app.status = body.status
     await db.flush()
+
+    await _queue_status_notification(db, app, candidate=None, job=job_row)
     await db.refresh(app)
     return app
+
+
+async def _queue_status_notification(
+    db: AsyncSession,
+    app: JobApplication,
+    candidate: Optional[Candidate],
+    job: Optional[JobPosting],
+) -> None:
+    """Queue a WhatsApp/SMS notification to the candidate on a notable change.
+
+    Fire-and-forget: delivery is handled by the worker task. If no transport is
+    configured the row stays `queued` (status still persisted for tracking).
+    """
+    spec = APPLICATION_STATUS_NOTIFICATIONS.get(app.status.value if hasattr(app.status, "value") else app.status)
+    if not spec:
+        return
+
+    cand = candidate
+    if cand is None:
+        cand = (
+            await db.execute(select(Candidate).where(Candidate.id == app.candidate_id))
+        ).scalar_one_or_none()
+
+    if not cand:
+        return
+
+    variables = build_application_status_variables(
+        job.title if job else None, None
+    )
+    body = render_template(spec["template"], variables)
+
+    notif = Notification(
+        recipient_id=cand.id,
+        recipient_type="candidate",
+        phone=cand.phone,
+        channel="whatsapp",
+        kind=spec["kind"],
+        title=spec["title"],
+        body=body,
+        status="queued",
+    )
+    db.add(notif)
+    await db.flush()
+    await db.refresh(notif)
+
+    try:
+        enqueue_delivery(str(notif.id))
+    except Exception:
+        pass
 
 
 def _status_value(app) -> str:

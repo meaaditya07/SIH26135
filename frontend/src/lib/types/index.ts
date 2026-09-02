@@ -318,3 +318,35 @@ export interface AnalyticsSnapshot {
   };
   placements_per_scheme: Record<string, number>;
 }
+
+export type NotificationChannel = "whatsapp" | "sms";
+export type NotificationStatus = "queued" | "sent" | "failed";
+
+export interface AppNotification {
+  id: string;
+  kind: string | null;
+  title: string | null;
+  body: string;
+  channel: NotificationChannel;
+  status: NotificationStatus;
+  created_at: string | null;
+  read_at: string | null;
+}
+
+export interface NotificationStats {
+  total: number;
+  by_status: {
+    queued: number;
+    sent: number;
+    failed: number;
+  };
+  delivery_rate: number;
+}
+
+export interface NotificationTemplateInfo {
+  id: string;
+  name: string;
+  channel: NotificationChannel;
+  kind: string | null;
+  body: string;
+}

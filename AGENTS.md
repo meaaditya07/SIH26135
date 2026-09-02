@@ -86,4 +86,26 @@ Vocational education outcome tracking & labor analytics platform.
   helper `downloadReport` in `frontend/src/lib/hooks/useDashboard.ts` (axios
   `responseType: "blob"` + content-disposition filename).
 
+## Notifications (Sprint 9)
+- Models `backend/app/models/notification.py` (`Notification`,
+  `NotificationTemplate`) + migration `0004_notifications.py` (chains 0004→0003).
+- Router `backend/app/api/v1/notifications.py` under `/api/v1/notifications`:
+  `POST /send` (queue, renders named template), `GET /mine` (candidate),
+  `GET /templates` + `POST /templates` (admin), `GET /stats` (delivery
+  analytics), `PATCH /{id}/read`. Static paths declared before `/{id}/read`.
+- Pure logic in `backend/app/services/notification_service.py`
+  (`render_template`, `build_application_status_variables`,
+  `APPLICATION_STATUS_NOTIFICATIONS`, `DEFAULT_TEMPLATES`, `dispatch_via_service`).
+- Delivery is enqueued to Celery via `backend/app/services/worker_queue.py`
+  (`enqueue_delivery`) → `workers/tasks/notification_dispatch.py`
+  (`deliver_notification`). The bridge swallows broker errors so the API stays
+  up; unsent rows remain `queued`.
+- Auto-notifications: the hiring-pipeline status PATCH
+  (`applications.py` → `_queue_status_notification`) creates a `Notification`
+  row for shortlisted/interview/offered/hired/rejected and enqueues delivery.
+- Frontend: `frontend/src/app/candidate/notifications/page.tsx` + hooks
+  `useMyNotifications`, `useNotificationStats`, `markNotificationRead`,
+  `sendNotification` in `useDashboard.ts`.
+
+
 

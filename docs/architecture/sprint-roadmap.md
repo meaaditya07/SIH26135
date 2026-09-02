@@ -34,16 +34,20 @@ completed/planned so future sessions have the single source of truth.
   `backend/app/services/reporting_service.py` (pure byte-builder helpers);
   frontend gov export center (`/gov/reports`) with per-report CSV/Excel/PDF
   download buttons. (Deps: `reportlab`, `openpyxl`.)
+- **Sprint 9 — Notifications & SMS/WhatsApp engine**: `Notification` +
+  `NotificationTemplate` models (migration `0004`), `/api/v1/notifications/*`
+  endpoints (send/queue, list-mine, templates CRUD, delivery stats, mark-read),
+  pure `notification_service` (template rendering + transport),
+  worker `deliver_notification` task, and auto-notifications on hiring-pipeline
+  status changes (shortlisted/interview/offered/hired/rejected).
 
 ## Metrics (latest verified)
-- Backend endpoints: 59 under `/api/v1/...`
-- Tests: 42 passing (backend tests + workers + ml)
+- Backend endpoints: 64 under `/api/v1/...`
+- Tests: 48 passing (backend tests + workers + ml)
 - Frontend gate: `npx tsc --noEmit` clean (never `npm run build` — broken SWC
   mirror in this environment)
 
 ## Proposed Next Sprints (candidates)
-- **Sprint 9 — Notifications & SMS engine**: worker tasks for WhatsApp/SMS
-  (job alerts, survey reminders), templates, delivery logs/analytics.
 - **Sprint 10 — Multi-role auth hardening & RBAC**: refresh tokens, audit
   logging, permission tests; fix known `/candidates/me` sub inconsistency
   (JWT `sub` is User.id, not candidate id).
