@@ -1,0 +1,25 @@
+[project]
+name = "skilltrace-backend"
+version = "0.1.0"
+description = "SkillTrace AI - Vocational Education Outcome Tracking Platform"
+requires-python = ">=3.12"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 99
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "COM", "C4", "DTZ", "T20", "RUF"]
+ignore = ["S101", "COM812"]
+
+[tool.ruff.isort]
+known-first-party = ["app"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short --cov=app --cov-report=term-missing"

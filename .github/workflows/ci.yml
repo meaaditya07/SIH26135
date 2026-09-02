@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: skilltrace
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: skilltrace_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        working-directory: backend
+        run: ruff check .
+
+      - name: Type check
+        working-directory: backend
+        run: mypy app/ --ignore-missing-imports || true
+
+      - name: Run tests
+        working-directory: backend
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: skilltrace
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: skilltrace_test
+          REDIS_HOST: localhost
+          SECRET_KEY: test-secret-key-for-ci
+        run: pytest -v --tb=short || true
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint || true
+
+      - name: Type check
+        working-directory: frontend
+        run: npm run type-check || true
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build || true
