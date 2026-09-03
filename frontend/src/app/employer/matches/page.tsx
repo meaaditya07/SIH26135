@@ -6,7 +6,7 @@ import TopBar from "@/components/layout/TopBar";
 import api from "@/lib/api";
 import { useJobCandidateMatches } from "@/lib/hooks/useDashboard";
 import type { JobPosting } from "@/lib/types";
-import { SearchX } from "lucide-react";
+import { SearchX, User, Contact } from "lucide-react";
 
 function matchTone(score: number): string {
   if (score >= 75) return "text-emerald-600";
@@ -51,7 +51,7 @@ export default function EmployerMatchesPage() {
                 <select
                   value={jobId ?? ""}
                   onChange={(e) => setJobId(e.target.value)}
-                  className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="input-glass w-auto"
                 >
                   {!jobId && <option value="">Select a job…</option>}
                   {jobs.map((j) => (
@@ -61,7 +61,7 @@ export default function EmployerMatchesPage() {
                 <select
                   value={minScore}
                   onChange={(e) => setMinScore(Number(e.target.value))}
-                  className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="input-glass w-auto"
                 >
                   <option value={0}>All match scores</option>
                   <option value={50}>50%+ match</option>
@@ -71,15 +71,20 @@ export default function EmployerMatchesPage() {
             </div>
 
             {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 mb-4">
+              <div className="glass border-red-200 bg-red-50/80 p-4 text-sm text-red-700 mb-4">
                 {error}
               </div>
             )}
 
-            {loading && <p className="text-slate-500">Loading matches…</p>}
+            {loading && (
+              <div className="space-y-4">
+                <div className="glass skeleton h-36" />
+                <div className="glass skeleton h-36" />
+              </div>
+            )}
 
             {!loading && matches.length === 0 && (
-              <div className="rounded-lg border bg-white p-12 flex flex-col items-center text-center">
+              <div className="glass p-12 flex flex-col items-center text-center animate-fade-up">
                 <SearchX className="h-10 w-10 text-slate-300 mb-3" />
                 <p className="text-slate-600 font-medium">No candidates matched</p>
                 <p className="text-sm text-slate-400 mt-1">
@@ -89,12 +94,12 @@ export default function EmployerMatchesPage() {
             )}
 
             <div className="space-y-4">
-              {matches.map((c) => (
-                <div key={c.candidate_id} className="rounded-lg border bg-white p-6 shadow-sm">
+              {matches.map((c, i) => (
+                <div key={c.candidate_id} className="glass card-hover p-6 animate-fade-up" style={{ animationDelay: `${0.05 * (i + 1)}s` }}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-full bg-brand-100 flex items-center justify-center">
-                        <span className="font-bold text-brand-700">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-indigo-500 shadow-md">
+                        <span className="font-bold text-white text-sm">
                           {c.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </span>
                       </div>
@@ -121,7 +126,7 @@ export default function EmployerMatchesPage() {
                       <>
                         <span className="text-xs text-slate-400 mr-1">Overlapping:</span>
                         {c.skill_overlap.map((s) => (
-                          <span key={s} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                          <span key={s} className="chip bg-emerald-100 text-emerald-700">
                             {s}
                           </span>
                         ))}
@@ -132,7 +137,7 @@ export default function EmployerMatchesPage() {
                     <div className="flex flex-wrap gap-2">
                       <span className="text-xs text-slate-400 mr-1">Missing:</span>
                       {c.skill_gaps.map((s) => (
-                        <span key={s} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                        <span key={s} className="chip bg-red-100 text-red-700">
                           {s}
                         </span>
                       ))}
@@ -140,11 +145,11 @@ export default function EmployerMatchesPage() {
                   )}
 
                   <div className="flex gap-2 mt-4">
-                    <button className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50">
-                      View Profile
+                    <button className="btn-ghost text-xs">
+                      <User className="h-3.5 w-3.5" /> View Profile
                     </button>
-                    <button className="rounded-md bg-brand-600 px-3 py-1.5 text-xs text-white hover:bg-brand-700">
-                      Contact
+                    <button className="btn-glass text-xs">
+                      <Contact className="h-3.5 w-3.5" /> Contact
                     </button>
                   </div>
                 </div>

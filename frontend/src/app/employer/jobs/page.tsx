@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, MoreHorizontal } from "lucide-react";
+import { Plus, MoreHorizontal, Briefcase } from "lucide-react";
 
 export default function JobsPage() {
   const [showForm, setShowForm] = useState(false);
@@ -47,7 +47,7 @@ export default function JobsPage() {
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700"
+            className="btn-glass"
           >
             <Plus className="h-4 w-4" /> New Posting
           </button>
@@ -56,9 +56,9 @@ export default function JobsPage() {
         {showForm && (
           <form
             onSubmit={handleSubmit}
-            className="rounded-lg border bg-white shadow-sm p-6 mb-8"
+            className="glass p-6 mb-8 animate-fade-up"
           >
-            <h3 className="font-semibold text-slate-800 mb-4">Create Job Posting</h3>
+            <h3 className="panel-title mb-4"><Briefcase className="h-5 w-5 text-brand-600" /> Create Job Posting</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm text-slate-600 mb-1">Job Title</label>
@@ -66,7 +66,7 @@ export default function JobsPage() {
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   required
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="input-glass"
                   placeholder="e.g. Junior Python Developer"
                 />
               </div>
@@ -76,7 +76,7 @@ export default function JobsPage() {
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
                   required
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="input-glass"
                   placeholder="e.g. Bengaluru"
                 />
               </div>
@@ -85,7 +85,7 @@ export default function JobsPage() {
                 <input
                   value={form.requiredSkills}
                   onChange={(e) => setForm({ ...form, requiredSkills: e.target.value })}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  className="input-glass"
                   placeholder="e.g. Python, SQL, Django"
                 />
               </div>
@@ -96,7 +96,7 @@ export default function JobsPage() {
                     type="number"
                     value={form.salaryMin}
                     onChange={(e) => setForm({ ...form, salaryMin: e.target.value })}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="input-glass"
                     placeholder="400000"
                   />
                 </div>
@@ -106,7 +106,7 @@ export default function JobsPage() {
                     type="number"
                     value={form.salaryMax}
                     onChange={(e) => setForm({ ...form, salaryMax: e.target.value })}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="input-glass"
                     placeholder="600000"
                   />
                 </div>
@@ -116,13 +116,13 @@ export default function JobsPage() {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600"
+                className="btn-ghost"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700"
+                className="btn-glass"
               >
                 Create Posting
               </button>
@@ -130,29 +130,29 @@ export default function JobsPage() {
           </form>
         )}
 
-        <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
+        <div className="glass p-6 overflow-hidden animate-fade-up delay-100">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-slate-50">
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Job Title</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Location</th>
-                <th className="px-4 py-3 text-right font-medium text-slate-600">Applicants</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Posted</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Status</th>
+              <tr className="border-b border-slate-100">
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Job Title</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Location</th>
+                <th className="px-4 py-3 text-right font-medium text-slate-500">Applicants</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Posted</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
               {jobs.map((j) => (
-                <tr key={j.id} className="border-b hover:bg-slate-50">
+                <tr key={j.id} className="border-b border-slate-100 hover:bg-white/70 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-800">{j.title}</td>
                   <td className="px-4 py-3 text-slate-600">{j.location}</td>
                   <td className="px-4 py-3 text-right text-slate-600">{j.applicants}</td>
                   <td className="px-4 py-3 text-slate-500">{j.posted}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    <span className={`chip ${
                       j.status === "active"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-emerald-100 text-emerald-700"
                         : "bg-slate-100 text-slate-500"
                     }`}>
                       {j.status}

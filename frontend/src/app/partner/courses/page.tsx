@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, MoreHorizontal, Users } from "lucide-react";
+import { Plus, MoreHorizontal, Users, BookOpen } from "lucide-react";
 
 const courses = [
   { id: "c1", name: "Python Programming", sector: "IT", students: 42, duration: "24 weeks", scheme: "PMKVY 4.0", status: "active" },
@@ -20,27 +20,27 @@ export default function CoursesPage() {
             <h1 className="text-3xl font-bold text-slate-800 mb-1">My Courses</h1>
             <p className="text-slate-500">All training programs under management</p>
           </div>
-          <button className="flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700">
+          <button className="btn-glass">
             <Plus className="h-4 w-4" /> Add Course
           </button>
         </div>
 
-        <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
+        <div className="glass p-6 overflow-hidden animate-fade-up">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-slate-50">
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Course Name</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Sector</th>
-                <th className="px-4 py-3 text-right font-medium text-slate-600">Students</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Duration</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Scheme</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Status</th>
+              <tr className="border-b border-slate-100">
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Course Name</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Sector</th>
+                <th className="px-4 py-3 text-right font-medium text-slate-500">Students</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Duration</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Scheme</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
               {courses.map((c) => (
-                <tr key={c.id} className="border-b hover:bg-slate-50">
+                <tr key={c.id} className="border-b border-slate-100 hover:bg-white/70 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-800">
                     <Link href={`/partner/enrollment/${c.id}`} className="hover:text-brand-700">{c.name}</Link>
                   </td>
@@ -53,9 +53,9 @@ export default function CoursesPage() {
                   <td className="px-4 py-3 text-slate-600">{c.duration}</td>
                   <td className="px-4 py-3 text-slate-600">{c.scheme}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    <span className={`chip ${
                       c.status === "active"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-emerald-100 text-emerald-700"
                         : "bg-slate-100 text-slate-500"
                     }`}>
                       {c.status}

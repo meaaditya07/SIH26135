@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Calendar, Award, Wallet, MessageSquare } from "lucide-react";
 
 export default function EnrollmentDetailPage() {
   const params = useParams();
@@ -46,40 +46,68 @@ export default function EnrollmentDetailPage() {
             <h1 className="text-3xl font-bold text-slate-800 mb-1">{student.name}</h1>
             <p className="text-slate-500">{student.course}</p>
           </div>
-          <span className="bg-green-100 text-green-700 text-sm font-medium px-3 py-1.5 rounded-full">
+          <span className="chip bg-emerald-100 text-emerald-700 text-sm font-medium px-3 py-1.5">
             Employed
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="rounded-lg border bg-white p-4 shadow-sm">
-            <p className="text-xs text-slate-400 mb-1">Enrolled</p>
-            <p className="font-medium text-slate-700">{student.enrolled}</p>
+          <div className="glass p-5 hover:-translate-y-1 transition-transform animate-fade-up" style={{ animationDelay: '0.05s' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-indigo-500 shadow-md">
+                <Calendar className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400">Enrolled</p>
+                <p className="font-medium text-slate-700">{student.enrolled}</p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-lg border bg-white p-4 shadow-sm">
-            <p className="text-xs text-slate-400 mb-1">Completed</p>
-            <p className="font-medium text-slate-700">{student.completed}</p>
+          <div className="glass p-5 hover:-translate-y-1 transition-transform animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-md">
+                <Award className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400">Completed</p>
+                <p className="font-medium text-slate-700">{student.completed}</p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-lg border bg-white p-4 shadow-sm">
-            <p className="text-xs text-slate-400 mb-1">Current Salary</p>
-            <p className="font-medium text-emerald-600">₹22,000 / month</p>
+          <div className="glass p-5 hover:-translate-y-1 transition-transform animate-fade-up" style={{ animationDelay: '0.15s' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-500 shadow-md">
+                <Wallet className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400">Current Salary</p>
+                <p className="font-medium text-emerald-600">₹22,000 / month</p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-lg border bg-white p-4 shadow-sm">
-            <p className="text-xs text-slate-400 mb-1">Survey Response</p>
-            <p className="font-medium text-slate-700">WhatsApp · 3-month</p>
+          <div className="glass p-5 hover:-translate-y-1 transition-transform animate-fade-up" style={{ animationDelay: '0.2s' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-md">
+                <MessageSquare className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-400">Survey Response</p>
+                <p className="font-medium text-slate-700">WhatsApp · 3-month</p>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="rounded-lg border bg-white shadow-sm p-6">
-            <h3 className="font-semibold text-slate-800 mb-4">Timeline</h3>
+          <div className="glass p-6 animate-fade-up delay-200">
+            <h3 className="panel-title mb-4"><Calendar className="h-5 w-5 text-brand-600" /> Timeline</h3>
             <div className="space-y-4">
               {timeline.map((t, i) => (
                 <div key={i} className="flex gap-3">
                   <div className="flex flex-col items-center">
                     <div
                       className={`h-2.5 w-2.5 rounded-full mt-1 ${
-                        t.type === "completion" ? "bg-green-500" : "bg-brand-500"
+                        t.type === "completion" ? "bg-emerald-500" : "bg-brand-500"
                       }`}
                     />
                     {i < timeline.length - 1 && <div className="w-px flex-1 bg-slate-200" />}
@@ -93,16 +121,16 @@ export default function EnrollmentDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border bg-white shadow-sm p-6">
-            <h3 className="font-semibold text-slate-800 mb-4">Salary Progression</h3>
+          <div className="glass p-6 animate-fade-up delay-300">
+            <h3 className="panel-title mb-4"><Wallet className="h-5 w-5 text-brand-600" /> Salary Progression</h3>
             <div className="flex items-end justify-between h-40 gap-2">
               {salaryPoints.map((s) => {
                 const height = (s.value / 30000) * 100;
                 return (
                   <div key={s.label} className="flex flex-col items-center flex-1 gap-2">
                     <span className="text-xs font-medium text-slate-600">₹{s.value / 1000}k</span>
-                    <div className="w-full bg-brand-100 rounded-t" style={{ height: `${height * 3}px` }}>
-                      <div className="w-full bg-brand-600 rounded-t" style={{ height: "100%", opacity: 0.9 }} />
+                    <div className="w-full rounded-t overflow-hidden" style={{ height: `${height * 3}px` }}>
+                      <div className="w-full bg-gradient-to-t from-brand-600 to-indigo-500 rounded-t" style={{ height: "100%", opacity: 0.9 }} />
                     </div>
                     <span className="text-xs text-slate-400">{s.label}</span>
                   </div>

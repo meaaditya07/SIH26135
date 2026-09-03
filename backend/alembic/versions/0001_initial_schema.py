@@ -24,13 +24,12 @@ def upgrade() -> None:
     contact_channel = postgresql.ENUM("whatsapp", "sms", "web_portal", name="contact_channel")
     contact_channel_type = postgresql.ENUM("whatsapp", "sms", "web_portal", name="contact_channel_type")
     scheme_status = postgresql.ENUM("active", "completed", "underperforming", "alert", name="scheme_status")
+    user_role = postgresql.ENUM("candidate", "training_partner", "employer", "gov_admin", name="user_role")
 
-    verification_status.create(op.get_bind(), checkfirst=True)
-    survey_interval.create(op.get_bind(), checkfirst=True)
-    survey_interval_type.create(op.get_bind(), checkfirst=True)
-    contact_channel.create(op.get_bind(), checkfirst=True)
-    contact_channel_type.create(op.get_bind(), checkfirst=True)
-    scheme_status.create(op.get_bind(), checkfirst=True)
+    # NOTE: do NOT create the enums here explicitly. Each enum is referenced by
+    # exactly one table below, and SQLAlchemy's table-create DDL event creates the
+    # enum on first use. Manually calling .create() AND relying on the table event
+    # re-creates the (global, Postgres-wide) type and fails with DuplicateObject.
 
     # ─── Candidates ───
     op.create_table(
@@ -104,7 +103,7 @@ def upgrade() -> None:
         sa.Column("phone", sa.String(15), nullable=False, unique=True),
         sa.Column("email", sa.String(255), unique=True),
         sa.Column("full_name", sa.String(255), nullable=False),
-        sa.Column("role", sa.String(20), nullable=False, server_default="candidate"),
+        sa.Column("role", user_role, nullable=False, server_default="candidate"),
         sa.Column("password_hash", sa.String(255)),
         sa.Column("aadhaar_hash", sa.String(64), unique=True),
         sa.Column("is_active", sa.Boolean(), server_default="true"),

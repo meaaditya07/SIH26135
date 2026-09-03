@@ -10,7 +10,7 @@ import {
   updateApplicationStatus,
 } from "@/lib/hooks/useDashboard";
 import type { JobPosting, JobApplicant, ApplicationStatus } from "@/lib/types";
-import { Users, TrendingUp } from "lucide-react";
+import { Users, TrendingUp, GitBranch } from "lucide-react";
 
 const STAGES: { key: ApplicationStatus; label: string; color: string }[] = [
   { key: "applied", label: "Applied", color: "text-slate-600" },
@@ -90,7 +90,7 @@ export default function EmployerPipelinePage() {
               <select
                 value={jobId ?? ""}
                 onChange={(e) => setJobId(e.target.value)}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="input-glass w-auto"
               >
                 {!jobId && <option value="">Select a job…</option>}
                 {jobs.map((j) => (
@@ -101,8 +101,8 @@ export default function EmployerPipelinePage() {
 
             {pipeline && (
               <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-                {STAGES.map((s) => (
-                  <div key={s.key} className="rounded-lg border bg-white p-4 shadow-sm">
+                {STAGES.map((s, i) => (
+                  <div key={s.key} className="glass p-4 hover:-translate-y-1 transition-transform animate-fade-up" style={{ animationDelay: `${0.03 * (i + 1)}s` }}>
                     <div className="flex items-center gap-2">
                       {s.key === "applied" ? (
                         <Users className="h-4 w-4 text-slate-400" />
@@ -121,10 +121,15 @@ export default function EmployerPipelinePage() {
               </div>
             )}
 
-            {loading && <p className="text-slate-500">Loading applicants…</p>}
+            {loading && (
+              <div className="space-y-4">
+                <div className="glass skeleton h-24" />
+                <div className="glass skeleton h-24" />
+              </div>
+            )}
 
             {!loading && applicants.length === 0 && (
-              <div className="rounded-lg border bg-white p-12 text-center text-slate-500">
+              <div className="glass p-12 text-center text-slate-500 animate-fade-up">
                 No applicants yet for this posting.
               </div>
             )}
@@ -133,14 +138,14 @@ export default function EmployerPipelinePage() {
               {STAGES.map((stage) => {
                 const items = grouped(stage.key);
                 return (
-                  <div key={stage.key} className="rounded-lg border bg-slate-50 p-4">
+                  <div key={stage.key} className="glass-inner p-4">
                     <h3 className={`font-semibold text-sm mb-3 flex items-center gap-2 ${stage.color}`}>
                       {stage.label}
                       <span className="text-xs text-slate-400">({items.length})</span>
                     </h3>
                     <div className="space-y-3">
                       {items.map((a) => (
-                        <div key={a.id} className="rounded-lg border bg-white p-4 shadow-sm">
+                        <div key={a.id} className="glass p-4 animate-scale-in">
                           <p className="font-medium text-slate-800">
                             {a.candidate?.full_name ?? "Candidate"}
                           </p>
@@ -150,7 +155,7 @@ export default function EmployerPipelinePage() {
                           </p>
                           <div className="flex flex-wrap gap-1 mb-2">
                             {a.skill_overlap?.slice(0, 4).map((s) => (
-                              <span key={s} className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
+                              <span key={s} className="chip bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5">
                                 {s}
                               </span>
                             ))}
@@ -160,7 +165,7 @@ export default function EmployerPipelinePage() {
                               <button
                                 onClick={() => advance(a)}
                                 disabled={stage.key === "offered"}
-                                className="flex-1 rounded-md bg-brand-600 px-2 py-1 text-[11px] text-white hover:bg-brand-700 disabled:opacity-40"
+                                className="btn-glass flex-1 text-[11px] py-1 px-2"
                               >
                                 {stage.key === "offered" ? "Hire" : "Advance"}
                               </button>
@@ -168,7 +173,7 @@ export default function EmployerPipelinePage() {
                             {stage.key !== "rejected" && stage.key !== "hired" && (
                               <button
                                 onClick={() => reject(a)}
-                                className="rounded-md border border-slate-300 px-2 py-1 text-[11px] text-slate-600 hover:bg-red-50 hover:text-red-600"
+                                className="btn-ghost text-[11px] py-1 px-2 hover:text-red-600 hover:border-red-200"
                               >
                                 Reject
                               </button>

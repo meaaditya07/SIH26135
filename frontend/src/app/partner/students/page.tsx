@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, GraduationCap } from "lucide-react";
 
 const students = [
   { id: "s1", name: "Rahul Sharma", course: "Python Programming", enrolled: "2026-03-10", status: "employed", salary: "₹22,000", survey: "3M" },
@@ -14,7 +14,7 @@ const students = [
 ];
 
 const statusStyles: Record<string, { label: string; className: string }> = {
-  employed: { label: "Employed", className: "bg-green-100 text-green-700" },
+  employed: { label: "Employed", className: "bg-emerald-100 text-emerald-700" },
   unemployed: { label: "Unemployed", className: "bg-red-100 text-red-600" },
   "self-employed": { label: "Self-Employed", className: "bg-blue-100 text-blue-700" },
   "survey-pending": { label: "Survey Pending", className: "bg-amber-100 text-amber-700" },
@@ -30,8 +30,8 @@ export default function StudentsPage() {
             <h1 className="text-3xl font-bold text-slate-800 mb-1">Student Outcomes</h1>
             <p className="text-slate-500">Track enrollment, employment status, and survey completions</p>
           </div>
-          <button className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
-            Export CSV
+          <button className="btn-ghost">
+            <GraduationCap className="h-4 w-4" /> Export CSV
           </button>
         </div>
 
@@ -40,49 +40,49 @@ export default function StudentsPage() {
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <input
               placeholder="Search by name or course..."
-              className="w-full rounded-md border border-slate-300 pl-10 pr-3 py-2 text-sm"
+              className="input-glass pl-10"
             />
           </div>
-          <select className="rounded-md border border-slate-300 px-3 py-2 text-sm">
+          <select className="input-glass w-auto">
             <option>All Statuses</option>
             <option>Employed</option>
             <option>Unemployed</option>
             <option>Survey Pending</option>
           </select>
-          <select className="rounded-md border border-slate-300 px-3 py-2 text-sm">
+          <select className="input-glass w-auto">
             <option>All Courses</option>
             <option>Python Programming</option>
             <option>Data Analysis</option>
             <option>Frontend Development</option>
           </select>
-          <button className="flex items-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-600">
+          <button className="btn-ghost">
             <Filter className="h-4 w-4" /> Filters
           </button>
         </div>
 
-        <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
+        <div className="glass p-6 overflow-hidden animate-fade-up">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-slate-50">
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Student</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Course</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Enrolled</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Status</th>
-                <th className="px-4 py-3 text-right font-medium text-slate-600">Salary</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Survey</th>
-                <th className="px-4 py-3 text-left font-medium text-slate-600">Details</th>
+              <tr className="border-b border-slate-100">
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Student</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Course</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Enrolled</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
+                <th className="px-4 py-3 text-right font-medium text-slate-500">Salary</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Survey</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">Details</th>
               </tr>
             </thead>
             <tbody>
               {students.map((s) => {
                 const style = statusStyles[s.status];
                 return (
-                  <tr key={s.id} className="border-b hover:bg-slate-50">
+                  <tr key={s.id} className="border-b border-slate-100 hover:bg-white/70 transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-800">{s.name}</td>
                     <td className="px-4 py-3 text-slate-600">{s.course}</td>
                     <td className="px-4 py-3 text-slate-500">{s.enrolled}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full ${style.className}`}>
+                      <span className={`chip ${style.className}`}>
                         {style.label}
                       </span>
                     </td>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import { useMyApplications } from "@/lib/hooks/useDashboard";
-import { FileText, Inbox } from "lucide-react";
+import { FileText, Inbox, Send } from "lucide-react";
 
 const STATUS_STYLES: Record<string, string> = {
   applied: "bg-slate-100 text-slate-600",
@@ -34,7 +34,7 @@ export default function MyApplicationsPage() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="input-glass w-auto"
               >
                 <option value="">All statuses</option>
                 <option value="applied">Applied</option>
@@ -46,10 +46,15 @@ export default function MyApplicationsPage() {
               </select>
             </div>
 
-            {loading && <p className="text-slate-500">Loading…</p>}
+            {loading && (
+              <div className="space-y-4">
+                <div className="glass skeleton h-24" />
+                <div className="glass skeleton h-24" />
+              </div>
+            )}
 
             {!loading && apps.length === 0 && (
-              <div className="rounded-lg border bg-white p-12 flex flex-col items-center text-center">
+              <div className="glass p-12 flex flex-col items-center text-center animate-fade-up">
                 <Inbox className="h-10 w-10 text-slate-300 mb-3" />
                 <p className="text-slate-600 font-medium">No applications yet</p>
                 <p className="text-sm text-slate-400 mt-1">
@@ -59,11 +64,13 @@ export default function MyApplicationsPage() {
             )}
 
             <div className="space-y-4">
-              {apps.map((a) => (
-                <div key={a.id} className="rounded-lg border bg-white p-6 shadow-sm">
+              {apps.map((a, i) => (
+                <div key={a.id} className="glass card-hover p-6 animate-fade-up" style={{ animationDelay: `${0.05 * (i + 1)}s` }}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-slate-400" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-indigo-500 shadow-md">
+                        <FileText className="h-5 w-5 text-white" />
+                      </div>
                       <div>
                         <p className="font-semibold text-slate-800">Application</p>
                         <p className="text-xs text-slate-500">
@@ -72,7 +79,7 @@ export default function MyApplicationsPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className={`text-xs px-2 py-1 rounded-full capitalize ${STATUS_STYLES[a.status] ?? STATUS_STYLES.applied}`}>
+                      <span className={`chip capitalize ${STATUS_STYLES[a.status] ?? STATUS_STYLES.applied}`}>
                         {a.status}
                       </span>
                       {a.match_score != null && (

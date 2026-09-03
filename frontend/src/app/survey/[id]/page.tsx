@@ -1,16 +1,17 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import type { PortalInfo } from "@/lib/types";
+import { ClipboardCheck, CheckCircle2 } from "lucide-react";
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default function SurveyPortalPage({ params }: Props) {
-  const { id } = use(params);
+  const { id } = params;
 
   const [info, setInfo] = useState<PortalInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,16 +62,16 @@ export default function SurveyPortalPage({ params }: Props) {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-slate-500">Loading survey…</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="glass skeleton h-24 w-64" />
       </main>
     );
   }
 
   if (error && !info) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-        <div className="max-w-md w-full bg-white rounded-lg border shadow-sm p-8 text-center">
+      <main className="min-h-screen flex items-center justify-center p-6">
+        <div className="glass max-w-md w-full p-8 text-center animate-fade-up">
           <p className="text-slate-700 mb-4">{error}</p>
           <Link href="/" className="text-brand-600 text-sm font-medium">Go to Home</Link>
         </div>
@@ -83,18 +84,18 @@ export default function SurveyPortalPage({ params }: Props) {
   const displayName = info?.candidate_name?.split(" ")[0] || "there";
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="min-h-screen p-6">
       <div className="max-w-xl mx-auto">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-slate-800">SkillTrace AI</h1>
+          <h1 className="text-2xl font-bold gradient-text">SkillTrace AI</h1>
           <p className="text-slate-500 text-sm">Employment Outcome Survey</p>
         </div>
 
-        <div className="rounded-lg border bg-white shadow-sm p-8">
+        <div className="glass-strong p-8 animate-fade-up">
           {done ? (
             <div className="text-center py-8">
-              <div className="h-14 w-14 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4 text-2xl">
-                ✓
+              <div className="flex h-14 w-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white items-center justify-center mx-auto mb-4 shadow-lg">
+                <CheckCircle2 className="h-7 w-7" />
               </div>
               <h2 className="text-xl font-semibold text-slate-800 mb-2">
                 {info?.status === "responded" ? "Already recorded" : "Thank you!"}
@@ -126,10 +127,10 @@ export default function SurveyPortalPage({ params }: Props) {
                       key={String(opt.value)}
                       type="button"
                       onClick={() => setIsEmployed(opt.value)}
-                      className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+                      className={`flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
                         isEmployed === opt.value
-                          ? "border-brand-600 bg-brand-50 text-brand-700"
-                          : "border-slate-300 text-slate-600 hover:border-slate-400"
+                          ? "border-brand-500 bg-brand-50/80 text-brand-700 shadow-md shadow-brand-500/10"
+                          : "border-slate-200 text-slate-600 hover:border-slate-300 bg-white/50"
                       }`}
                     >
                       {opt.label}
@@ -147,7 +148,7 @@ export default function SurveyPortalPage({ params }: Props) {
                     type="text"
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="input-glass"
                     placeholder="e.g. Junior Electrician"
                   />
                 </div>
@@ -160,7 +161,7 @@ export default function SurveyPortalPage({ params }: Props) {
                     type="number"
                     value={salary}
                     onChange={(e) => setSalary(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="input-glass"
                     placeholder="e.g. 18000"
                   />
                 </div>
@@ -173,7 +174,7 @@ export default function SurveyPortalPage({ params }: Props) {
                     type="text"
                     value={jobLocation}
                     onChange={(e) => setJobLocation(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="input-glass"
                     placeholder="City / District"
                   />
                 </div>
@@ -192,10 +193,10 @@ export default function SurveyPortalPage({ params }: Props) {
                         key={String(opt.value)}
                         type="button"
                         onClick={() => setRelevant(opt.value as boolean | null)}
-                        className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        className={`rounded-xl border px-3 py-2 text-sm font-medium transition-all ${
                           relevant === opt.value
-                            ? "border-brand-600 bg-brand-50 text-brand-700"
-                            : "border-slate-300 text-slate-600 hover:border-slate-400"
+                            ? "border-brand-500 bg-brand-50/80 text-brand-700 shadow-md shadow-brand-500/10"
+                            : "border-slate-200 text-slate-600 hover:border-slate-300 bg-white/50"
                         }`}
                       >
                         {opt.label}
@@ -212,8 +213,9 @@ export default function SurveyPortalPage({ params }: Props) {
               <button
                 type="submit"
                 disabled={isEmployed === null || submitting}
-                className="mt-6 w-full rounded-lg bg-brand-600 text-white px-4 py-3 text-sm font-semibold hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="mt-6 btn-glass w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                <ClipboardCheck className="h-4 w-4" />
                 {submitting ? "Submitting…" : "Submit Response"}
               </button>
             </form>

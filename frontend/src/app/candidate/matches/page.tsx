@@ -6,7 +6,7 @@ import TopBar from "@/components/layout/TopBar";
 import api from "@/lib/api";
 import { useCandidateJobMatches, applyToJob } from "@/lib/hooks/useDashboard";
 import type { Candidate } from "@/lib/types";
-import { SearchX, CheckCircle2 } from "lucide-react";
+import { SearchX, CheckCircle2, Sparkles } from "lucide-react";
 
 function matchTone(score: number): string {
   if (score >= 75) return "text-emerald-600";
@@ -71,7 +71,7 @@ export default function CandidateMatchesPage() {
               <select
                 value={minScore}
                 onChange={(e) => setMinScore(Number(e.target.value))}
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="input-glass w-auto"
               >
                 <option value={0}>All matches</option>
                 <option value={50}>50%+ match</option>
@@ -80,15 +80,20 @@ export default function CandidateMatchesPage() {
             </div>
 
             {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 mb-4">
+              <div className="glass border-red-200 bg-red-50/80 p-4 text-sm text-red-700 mb-4">
                 {error}
               </div>
             )}
 
-            {loading && <p className="text-slate-500">Loading matches…</p>}
+            {loading && (
+              <div className="space-y-4">
+                <div className="glass skeleton h-40" />
+                <div className="glass skeleton h-40" />
+              </div>
+            )}
 
             {!loading && matches.length === 0 && (
-              <div className="rounded-lg border bg-white p-12 flex flex-col items-center text-center">
+              <div className="glass p-12 flex flex-col items-center text-center animate-fade-up">
                 <SearchX className="h-10 w-10 text-slate-300 mb-3" />
                 <p className="text-slate-600 font-medium">No matching jobs found</p>
                 <p className="text-sm text-slate-400 mt-1">
@@ -98,8 +103,8 @@ export default function CandidateMatchesPage() {
             )}
 
             <div className="space-y-4">
-              {matches.map((m) => (
-                <div key={m.job_id} className="rounded-lg border bg-white p-6 shadow-sm">
+              {matches.map((m, i) => (
+                <div key={m.job_id} className="glass card-hover p-6 animate-fade-up" style={{ animationDelay: `${0.05 * (i + 1)}s` }}>
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-semibold text-slate-800">{m.title}</h3>
@@ -115,7 +120,7 @@ export default function CandidateMatchesPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                  <div className="glass-inner p-4 grid grid-cols-2 gap-4 text-sm mb-4">
                     <div>
                       <p className="text-xs text-slate-400 mb-1">Salary</p>
                       <p className="text-slate-700">
@@ -137,7 +142,7 @@ export default function CandidateMatchesPage() {
                       <>
                         <span className="text-xs text-slate-400 mr-1">Matched:</span>
                         {m.skill_overlap.map((s) => (
-                          <span key={s} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                          <span key={s} className="chip bg-emerald-100 text-emerald-700">
                             {s}
                           </span>
                         ))}
@@ -148,7 +153,7 @@ export default function CandidateMatchesPage() {
                     <div className="flex flex-wrap gap-2">
                       <span className="text-xs text-slate-400 mr-1">Gaps:</span>
                       {m.skill_gaps.map((s) => (
-                        <span key={s} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                        <span key={s} className="chip bg-red-100 text-red-700">
                           {s}
                         </span>
                       ))}
@@ -156,7 +161,7 @@ export default function CandidateMatchesPage() {
                   )}
                   <div className="mt-4 flex justify-end">
                     {applied[m.job_id] ? (
-                      <span className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md bg-emerald-100 text-emerald-700">
+                      <span className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 font-medium">
                         <CheckCircle2 className="h-4 w-4" />
                         Applied
                       </span>
@@ -164,8 +169,9 @@ export default function CandidateMatchesPage() {
                       <button
                         onClick={(e) => { e.preventDefault(); handleApply(m.job_id, m.title); }}
                         disabled={applying === m.job_id}
-                        className="rounded-md bg-brand-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                        className="btn-glass text-xs"
                       >
+                        <Sparkles className="h-3.5 w-3.5" />
                         {applying === m.job_id ? "Applying…" : "Apply Now"}
                       </button>
                     )}

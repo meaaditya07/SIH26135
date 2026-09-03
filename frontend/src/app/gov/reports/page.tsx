@@ -10,6 +10,7 @@ import {
   downloadReport,
 } from "@/lib/hooks/useDashboard";
 import type { ReportFormat } from "@/lib/types";
+import { useRequireAuth } from "@/lib/hooks/useAuthGuard";
 
 const FORMAT_META: Record<ReportFormat, { icon: typeof FileText; label: string; color: string }> = {
   csv: { icon: FileType2, label: "CSV", color: "text-green-600 border-green-200 hover:bg-green-50" },
@@ -18,6 +19,7 @@ const FORMAT_META: Record<ReportFormat, { icon: typeof FileText; label: string; 
 };
 
 export default function ReportsPage() {
+  useRequireAuth("gov_admin");
   const { data: available, loading: loadingReports } = useAvailableReports();
   const { data: snapshot } = useAnalyticsSnapshot();
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -57,26 +59,32 @@ export default function ReportsPage() {
         <TopBar title="Reports & Exports" />
         <main className="p-6 space-y-6">
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="glass animate-scale-in border-rose-200/70 bg-rose-50/80 p-4 text-sm text-rose-700">
               {error}
             </div>
           )}
 
-          <div className="rounded-lg border bg-white p-6 shadow-sm">
-            <h3 className="font-semibold text-slate-800 mb-4">Analytics Snapshot</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="glass animate-fade-up p-6">
+            <h3 className="panel-title mb-4">
+              <FileText className="h-4 w-4 text-brand-600" />
+              Analytics Snapshot
+            </h3>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
               {snapshotCards.map(({ label, value }) => (
-                <div key={label} className="rounded-lg bg-slate-50 p-4">
+                <div key={label} className="glass-inner p-4">
                   <p className="text-xl font-bold text-slate-800">{value}</p>
-                  <p className="text-xs text-slate-500 mt-1">{label}</p>
+                  <p className="mt-1 text-xs text-slate-500">{label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-lg border bg-white p-6 shadow-sm">
-            <h3 className="font-semibold text-slate-800 mb-1">Download Reports</h3>
-            <p className="text-sm text-slate-500 mb-4">
+          <div className="glass animate-fade-up delay-100 p-6">
+            <h3 className="panel-title mb-1">
+              <Download className="h-4 w-4 text-emerald-600" />
+              Download Reports
+            </h3>
+            <p className="mb-4 text-sm text-slate-500">
               Export current data as CSV, Excel, or PDF for each report type.
             </p>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { TrendingUp, Lightbulb, BarChart3 } from "lucide-react";
 
 interface SkillFit {
   skill: string;
@@ -38,8 +39,8 @@ export default function CurriculumGapPage() {
             <h1 className="text-3xl font-bold text-slate-800 mb-1">Curriculum-Market Fit</h1>
             <p className="text-slate-500">How your course curriculum aligns with current job market demand</p>
           </div>
-          <div className="text-right">
-            <p className={`text-3xl font-bold ${avgFit >= 80 ? "text-green-600" : avgFit >= 60 ? "text-amber-600" : "text-red-600"}`}>
+          <div className="glass p-5 text-right animate-fade-up">
+            <p className={`text-3xl font-bold ${avgFit >= 80 ? "text-emerald-600" : avgFit >= 60 ? "text-amber-600" : "text-red-600"}`}>
               {avgFit}%
             </p>
             <p className="text-xs text-slate-400">Overall curriculum fit</p>
@@ -47,17 +48,15 @@ export default function CurriculumGapPage() {
         </div>
 
         {avgFit < 75 && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 mb-8 text-sm text-amber-800">
+          <div className="glass border-amber-200 bg-amber-50/60 p-4 mb-8 text-sm text-amber-800 animate-fade-up">
             <strong>Warning:</strong> Your curriculum is falling behind market demand. Consider adding skills below to improve placement outcomes.
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 rounded-lg border bg-white shadow-sm overflow-hidden">
-            <div className="p-4 border-b bg-slate-50">
-              <h3 className="font-semibold text-slate-800">Skill Coverage vs. Market Demand</h3>
-            </div>
-            <div className="p-6 space-y-5">
+          <div className="lg:col-span-2 glass p-6 overflow-hidden animate-fade-up delay-100">
+            <h3 className="panel-title mb-4"><BarChart3 className="h-5 w-5 text-brand-600" /> Skill Coverage vs. Market Demand</h3>
+            <div className="space-y-5">
               {skills.map(({ skill, taught, marketDemand }) => {
                 const fit = Math.min(taught / Math.max(marketDemand, 1), 1);
                 const status = fit >= 0.9 ? "good" : fit >= 0.7 ? "ok" : "poor";
@@ -66,17 +65,17 @@ export default function CurriculumGapPage() {
                     <div className="flex justify-between mb-1.5">
                       <span className="font-medium text-slate-700 text-sm">{skill}</span>
                       <span className={`text-xs font-medium ${
-                        status === "good" ? "text-green-600" : status === "ok" ? "text-amber-600" : "text-red-600"
+                        status === "good" ? "text-emerald-600" : status === "ok" ? "text-amber-600" : "text-red-600"
                       }`}>
                         {status === "good" ? "Well Aligned" : status === "ok" ? "Partially Aligned" : "Gap Detected"}
                       </span>
                     </div>
                     <div className="flex gap-0.5 h-3 rounded overflow-hidden">
                       <div className="flex-1 bg-brand-100 rounded-l overflow-hidden">
-                        <div className="h-full bg-brand-600 rounded-l" style={{ width: `${taught}%` }} />
+                        <div className="h-full bg-gradient-to-r from-brand-500 to-indigo-500 rounded-l" style={{ width: `${taught}%` }} />
                       </div>
                       <div className="flex-1 bg-emerald-100 rounded-r overflow-hidden relative">
-                        <div className="h-full bg-emerald-500 rounded-r" style={{ width: `${marketDemand}%` }} />
+                        <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-r" style={{ width: `${marketDemand}%` }} />
                       </div>
                     </div>
                     <div className="flex justify-between text-xs text-slate-400 mt-1">
@@ -89,8 +88,8 @@ export default function CurriculumGapPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border bg-white shadow-sm p-6 h-fit">
-            <h3 className="font-semibold text-slate-800 mb-4">Trending Skills to Add</h3>
+          <div className="glass p-6 h-fit animate-fade-up delay-200">
+            <h3 className="panel-title mb-4"><TrendingUp className="h-5 w-5 text-brand-600" /> Trending Skills to Add</h3>
             <div className="space-y-4">
               {trending.map((t) => (
                 <div key={t.skill} className="flex items-center justify-between">
@@ -99,16 +98,16 @@ export default function CurriculumGapPage() {
                     <p className="text-xs text-emerald-600">{t.demand} YoY demand growth</p>
                   </div>
                   {t.recommended && (
-                    <span className="text-xs bg-brand-50 text-brand-700 px-2 py-1 rounded-full">
-                      Recommended
+                    <span className="chip bg-brand-50 text-brand-700">
+                      <Lightbulb className="h-3 w-3" /> Recommended
                     </span>
                   )}
                 </div>
               ))}
             </div>
-            <div className="mt-6 pt-4 border-t">
+            <div className="mt-6 pt-4 border-t border-slate-100">
               <p className="text-xs text-slate-400 mb-2">Updated weekly from live job market analysis</p>
-              <button className="w-full rounded-md bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700">
+              <button className="btn-glass w-full">
                 Review All Recommendations
               </button>
             </div>

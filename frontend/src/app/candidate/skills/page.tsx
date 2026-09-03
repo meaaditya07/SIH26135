@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BarChart3, TrendingUp, AlertTriangle, Target } from "lucide-react";
 
 const skills = [
   { name: "Python", level: 78, demand: 92, gap: 14 },
@@ -23,30 +24,49 @@ export default function SkillsPage() {
         <p className="text-slate-500 mb-8">How your skills compare to current job market demand</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="rounded-lg border bg-white p-6 shadow-sm">
-            <p className="text-2xl font-bold text-slate-800">8</p>
-            <p className="text-sm text-slate-500">Skills in Profile</p>
+          <div className="glass p-5 hover:-translate-y-1 transition-transform animate-fade-up" style={{ animationDelay: '0.05s' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-indigo-500 shadow-md">
+                <BarChart3 className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-800">8</p>
+                <p className="text-xs text-slate-500">Skills in Profile</p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-lg border bg-white p-6 shadow-sm">
-            <p className="text-2xl font-bold text-red-600">5</p>
-            <p className="text-sm text-slate-500">Skills to Improve</p>
+          <div className="glass p-5 hover:-translate-y-1 transition-transform animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-red-500 shadow-md">
+                <AlertTriangle className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-rose-600">5</p>
+                <p className="text-xs text-slate-500">Skills to Improve</p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-lg border bg-white p-6 shadow-sm">
-            <p className="text-2xl font-bold text-emerald-600">71%</p>
-            <p className="text-sm text-slate-500">Overall Market Fit</p>
+          <div className="glass p-5 hover:-translate-y-1 transition-transform animate-fade-up" style={{ animationDelay: '0.15s' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-md">
+                <Target className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-emerald-600">71%</p>
+                <p className="text-xs text-slate-500">Overall Market Fit</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="rounded-lg border bg-white shadow-sm overflow-hidden mb-8">
-          <div className="p-4 border-b bg-slate-50">
-            <h3 className="font-semibold text-slate-800">Skill Gap Analysis</h3>
-          </div>
+        <div className="glass p-6 overflow-hidden animate-fade-up delay-200">
+          <h3 className="panel-title mb-4"><TrendingUp className="h-5 w-5 text-brand-600" /> Skill Gap Analysis</h3>
           <div className="divide-y divide-slate-100">
             {skills.map(({ name, level, demand, gap }) => (
-              <div key={name} className="p-4">
+              <div key={name} className="p-4 hover:bg-white/70 transition-colors">
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-medium text-slate-700">{name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${gap > 15 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+                  <span className={`chip ${gap > 15 ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
                     Gap: {gap}%
                   </span>
                 </div>
@@ -57,7 +77,7 @@ export default function SkillsPage() {
                       <span>{level}%</span>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full">
-                      <div className="h-2 bg-brand-600 rounded-full" style={{ width: `${level}%` }} />
+                      <div className="h-2 bg-gradient-to-r from-brand-500 to-indigo-500 rounded-full" style={{ width: `${level}%` }} />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -66,7 +86,7 @@ export default function SkillsPage() {
                       <span>{demand}%</span>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full">
-                      <div className="h-2 bg-emerald-500 rounded-full" style={{ width: `${demand}%` }} />
+                      <div className="h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" style={{ width: `${demand}%` }} />
                     </div>
                   </div>
                 </div>

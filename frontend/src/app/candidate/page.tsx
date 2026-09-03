@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { usePlacementScore } from "@/lib/hooks/useDashboard";
-import { Target } from "lucide-react";
+import { useRequireAuth } from "@/lib/hooks/useAuthGuard";
+import {
+  Target, ShieldCheck, Sparkles, Briefcase, History, ArrowUpRight,
+} from "lucide-react";
 
 export default function CandidateDashboard() {
+  useRequireAuth("candidate");
   const [candidateId, setCandidateId] = useState<string | undefined>(undefined);
   const { data: score, loading } = usePlacementScore(candidateId);
 
@@ -18,39 +22,48 @@ export default function CandidateDashboard() {
 
   const pct = score?.score_pct ?? 0;
   const tone =
-    pct >= 70 ? "text-emerald-600" : pct >= 45 ? "text-amber-600" : "text-red-600";
+    pct >= 70 ? "text-emerald-600" : pct >= 45 ? "text-amber-600" : "text-rose-600";
   const barTone =
-    pct >= 70 ? "bg-emerald-500" : pct >= 45 ? "bg-amber-500" : "bg-red-500";
+    pct >= 70 ? "from-emerald-500 to-teal-500" : pct >= 45 ? "from-amber-500 to-yellow-500" : "from-rose-500 to-red-500";
+
+  const cards = [
+    { href: "/candidate/verification", title: "Identity Verification", desc: "DigiLocker document verification status", icon: ShieldCheck, tint: "from-amber-500 to-orange-500", tag: "Pending", tagTone: "bg-amber-100 text-amber-700" },
+    { href: "/candidate/skills", title: "My Skills", desc: "View skill gaps and market demand", icon: Sparkles, tint: "from-brand-500 to-indigo-500" },
+    { href: "/candidate/matches", title: "Job Matches", desc: "Personalized job recommendations", icon: Briefcase, tint: "from-sky-500 to-cyan-500" },
+    { href: "/candidate/progress", title: "My Progress", desc: "Training completion and survey history", icon: History, tint: "from-violet-500 to-fuchsia-500" },
+  ];
 
   return (
     <main className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">Candidate Portal</h1>
-        <p className="text-slate-500 mb-8">Your skills, verification status, and job matches</p>
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-8 animate-fade-up">
+          <h1 className="text-3xl font-extrabold text-slate-900">Candidate Portal</h1>
+          <p className="text-slate-500">Your skills, verification status, and job matches</p>
+        </div>
 
         {candidateId && (
-          <div className="rounded-lg border bg-white p-6 shadow-sm mb-8">
+          <div className="glass p-6 mb-8 animate-fade-up delay-100">
             <div className="flex items-start justify-between">
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="panel-title mb-1">
                   <Target className="h-5 w-5 text-brand-600" />
-                  <h3 className="font-semibold text-slate-800">Placement Likelihood</h3>
+                  Placement Likelihood
                 </div>
                 <p className="text-sm text-slate-500">
                   AI estimate of your probability of employment within 6 months
                 </p>
               </div>
               <div className="text-right">
-                <span className={`text-3xl font-bold ${tone}`}>
+                <span className={`text-4xl font-extrabold ${tone}`}>
                   {loading ? "…" : `${pct}%`}
                 </span>
               </div>
             </div>
             {!loading && score && (
-              <div className="mt-4">
-                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className="mt-5">
+                <div className="h-3 overflow-hidden rounded-full bg-slate-100">
                   <div
-                    className={`h-2.5 ${barTone} rounded-full transition-all`}
+                    className={`h-full rounded-full bg-gradient-to-r ${barTone} transition-all duration-1000 ease-out`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -59,11 +72,11 @@ export default function CandidateDashboard() {
                     {score.factors.map((f) => (
                       <span
                         key={f.factor}
-                        className={`text-xs px-2 py-1 rounded-full ${
+                        className={`chip ${
                           f.effect === "boost" || f.effect === "high"
                             ? "bg-emerald-100 text-emerald-700"
                             : f.effect === "concern" || f.effect === "low"
-                            ? "bg-red-100 text-red-700"
+                            ? "bg-rose-100 text-rose-700"
                             : "bg-slate-100 text-slate-600"
                         }`}
                         title={f.detail}
@@ -78,24 +91,27 @@ export default function CandidateDashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Link href="/candidate/verification" className="rounded-lg border bg-white p-6 shadow-sm hover:shadow-md">
-            <h3 className="font-semibold text-slate-800">Identity Verification</h3>
-            <p className="text-sm text-slate-500 mt-1">DigiLocker document verification status</p>
-            <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Pending</span>
-          </Link>
-          <Link href="/candidate/skills" className="rounded-lg border bg-white p-6 shadow-sm hover:shadow-md">
-            <h3 className="font-semibold text-slate-800">My Skills</h3>
-            <p className="text-sm text-slate-500 mt-1">View skill gaps and market demand</p>
-          </Link>
-          <Link href="/candidate/matches" className="rounded-lg border bg-white p-6 shadow-sm hover:shadow-md">
-            <h3 className="font-semibold text-slate-800">Job Matches</h3>
-            <p className="text-sm text-slate-500 mt-1">Personalized job recommendations</p>
-          </Link>
-          <Link href="/candidate/progress" className="rounded-lg border bg-white p-6 shadow-sm hover:shadow-md">
-            <h3 className="font-semibold text-slate-800">My Progress</h3>
-            <p className="text-sm text-slate-500 mt-1">Training completion and survey history</p>
-          </Link>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          {cards.map(({ href, title, desc, icon: Icon, tint, tag, tagTone }, i) => (
+            <Link
+              key={href}
+              href={href}
+              className="group glass card-hover animate-fade-up p-6"
+              style={{ animationDelay: `${i * 0.08}s` }}
+            >
+              <div className="flex items-start justify-between">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${tint} shadow-md transition-transform duration-300 group-hover:scale-110`}>
+                  <Icon className="h-5 w-5 text-white" />
+                </div>
+                <ArrowUpRight className="h-5 w-5 text-slate-300 transition-all group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-brand-500" />
+              </div>
+              <h3 className="mt-4 font-bold text-slate-800 group-hover:text-brand-700">{title}</h3>
+              <p className="mt-1 text-sm text-slate-500">{desc}</p>
+              {tag && (
+                <span className={`chip mt-3 ${tagTone}`}>{tag}</span>
+              )}
+            </Link>
+          ))}
         </div>
       </div>
     </main>

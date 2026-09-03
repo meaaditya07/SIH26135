@@ -4,7 +4,9 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
+import { useRequireAuth } from "@/lib/hooks/useAuthGuard";
 import { useHeatmapData } from "@/lib/hooks/useDashboard";
+import { Map } from "lucide-react";
 
 const MapContainer = dynamic(
   () => import("react-leaflet").then((m) => m.MapContainer),
@@ -37,6 +39,7 @@ function gapColor(gap: number): string {
 }
 
 export default function HeatmapPage() {
+  useRequireAuth("gov_admin");
   const [state, setState] = useState("");
   const [sector, setSector] = useState("");
   const { data, loading } = useHeatmapData(state || undefined, sector || undefined);
@@ -49,13 +52,13 @@ export default function HeatmapPage() {
       <div className="flex-1">
         <TopBar title="Regional Skill Gap Heatmap" />
         <main className="p-6">
-          <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
-            <div className="p-4 border-b flex flex-wrap items-center justify-between gap-3">
+          <div className="glass p-6 overflow-hidden animate-fade-up">
+            <div className="p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex gap-2">
                 <select
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+                  className="input-glass w-auto"
                 >
                   <option value="">All States</option>
                   {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -63,7 +66,7 @@ export default function HeatmapPage() {
                 <select
                   value={sector}
                   onChange={(e) => setSector(e.target.value)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+                  className="input-glass w-auto"
                 >
                   <option value="">All Sectors</option>
                   {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -89,10 +92,11 @@ export default function HeatmapPage() {
               </div>
             </div>
 
-            <div className="relative h-[600px] bg-slate-100">
+            <div className="relative h-[600px] rounded-xl overflow-hidden bg-slate-100">
               {points.length === 0 ? (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="text-center text-slate-400 bg-white/80 rounded-lg p-6">
+                  <div className="glass-inner text-center text-slate-400 p-6">
+                    <Map className="h-8 w-8 mx-auto mb-2 text-slate-300" />
                     <p className="text-lg font-medium">
                       {loading ? "Loading heatmap data…" : "No gap data for selected filters"}
                     </p>
