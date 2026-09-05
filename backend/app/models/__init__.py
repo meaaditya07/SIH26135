@@ -15,6 +15,7 @@ from app.models.scheme_analytics import SchemeAnalytics
 from app.models.candidate_job_match import CandidateJobMatch
 from app.models.job_application import JobApplication
 from app.models.notification import Notification, NotificationTemplate
+from app.models.employer_shortlist import EmployerShortlist
 
 __all__ = [
     "User",
@@ -36,4 +37,5 @@ __all__ = [
     "JobApplication",
     "Notification",
     "NotificationTemplate",
+    "EmployerShortlist",
 ]

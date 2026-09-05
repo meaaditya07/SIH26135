@@ -17,6 +17,7 @@ from app.database import get_db
 from app.dependencies import require_role
 from app.models.user import User
 from app.models.candidate import Candidate
+from app.models.employer import Employer
 from app.models.notification import Notification, NotificationTemplate
 from app.services.notification_service import render_template
 
@@ -123,12 +124,23 @@ async def send_notification(
 async def my_notifications(
     status: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(require_role("candidate")),
+    user: dict = Depends(require_role("candidate", "employer")),
 ):
     u = await _current_user(db, user)
-    if not u.candidate_id:
-        raise HTTPException(status_code=403, detail="No candidate profile linked to account")
-    query = select(Notification).where(Notification.recipient_id == u.candidate_id)
+
+    if u.employer_id:
+        employer = (
+            await db.execute(select(Employer).where(Employer.id == u.employer_id))
+        ).scalar_one_or_none()
+        query = select(Notification).where(
+            Notification.recipient_type == "employer",
+            Notification.phone == (employer.phone if employer else None),
+        )
+    elif u.candidate_id:
+        query = select(Notification).where(Notification.recipient_id == u.candidate_id)
+    else:
+        raise HTTPException(status_code=403, detail="No linked profile on account")
+
     if status:
         query = query.where(Notification.status == status)
     query = query.order_by(Notification.created_at.desc()).limit(50)
@@ -201,17 +213,32 @@ async def notification_stats(
 async def mark_read(
     notification_id: UUID,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(require_role("candidate")),
+    user: dict = Depends(require_role("candidate", "employer")),
 ):
     u = await _current_user(db, user)
-    n = (
-        await db.execute(
-            select(Notification).where(
-                Notification.id == notification_id,
-                Notification.recipient_id == u.candidate_id,
+    n = None
+    if u.employer_id:
+        employer = (
+            await db.execute(select(Employer).where(Employer.id == u.employer_id))
+        ).scalar_one_or_none()
+        n = (
+            await db.execute(
+                select(Notification).where(
+                    Notification.id == notification_id,
+                    Notification.recipient_type == "employer",
+                    Notification.phone == (employer.phone if employer else None),
+                )
             )
-        )
-    ).scalar_one_or_none()
+        ).scalar_one_or_none()
+    elif u.candidate_id:
+        n = (
+            await db.execute(
+                select(Notification).where(
+                    Notification.id == notification_id,
+                    Notification.recipient_id == u.candidate_id,
+                )
+            )
+        ).scalar_one_or_none()
     if not n:
         raise HTTPException(status_code=404, detail="Notification not found")
     n.read_at = datetime.utcnow()

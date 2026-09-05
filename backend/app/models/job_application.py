@@ -31,6 +31,15 @@ class JobApplication(Base):
         index=True,
     )
     cover_note = Column(Text, nullable=True)
+    feedback = Column(Text, nullable=True)
+
+    # Offer / hiring details captured when the employer marks an applicant hired.
+    offer_start_date = Column(DateTime, nullable=True)
+    offer_salary = Column(Numeric(12, 2), nullable=True)
+
+    # Interview scheduling captured when the employer moves an applicant to interview.
+    interview_at = Column(DateTime, nullable=True)
+    interview_note = Column(Text, nullable=True)
 
     # Snapshot of the computed match at application time (for employer ranking
     # without recomputing later).

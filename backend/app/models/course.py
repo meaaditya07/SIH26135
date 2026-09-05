@@ -16,6 +16,7 @@ class Course(Base):
     name = Column(String(255), nullable=False)
     sector = Column(String(100), nullable=False, index=True)
     duration_weeks = Column(Integer, nullable=False)
+    total_seats = Column(Integer, nullable=True)
     ncvt_code = Column(String(50), nullable=True)
     curriculum_snapshot = Column(JSONB, default={})
     skills_taught = Column(JSONB, default=[])

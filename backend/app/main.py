@@ -9,7 +9,7 @@ from app.core.exceptions import SkillTraceException
 from app.api.v1 import (
     candidates, training_partners, employers, courses, auth, skill_gap, analytics,
     enrollments, outcomes, job_postings, surveys, webhooks, matches, ml,
-    applications, reports, notifications,
+    applications, reports, notifications, shortlist,
 )
 
 settings = get_settings()
@@ -76,6 +76,7 @@ def create_app() -> FastAPI:
     app.include_router(surveys.router, prefix="/api/v1/surveys", tags=["Surveys"])
     app.include_router(webhooks.router, prefix="/api/v1/webhooks/twilio", tags=["Twilio Webhooks"])
     app.include_router(matches.router, prefix="/api/v1/matches", tags=["Match Scoring"])
+    app.include_router(shortlist.router, prefix="/api/v1/shortlist", tags=["Shortlist"])
     app.include_router(ml.router, prefix="/api/v1/ml", tags=["ML Placement"])
     app.include_router(
         applications.router, prefix="/api/v1/applications", tags=["Hiring Pipeline"]

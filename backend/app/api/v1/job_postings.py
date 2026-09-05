@@ -7,10 +7,78 @@ from uuid import UUID
 
 from app.database import get_db
 from app.dependencies import require_role
+from app.models.user import User
 from app.models.job_posting import JobPosting
+from app.models.candidate import Candidate
+from app.models.notification import Notification
+from app.services.notification_service import render_template
+from app.services.matching_service import score_candidates_for_job
 from app.core.exceptions import raise_not_found
 
 router = APIRouter()
+
+_JOB_ALERT_SPEC = {
+    "kind": "job_alert",
+    "title": "New Job Match",
+    "template": "New opportunity: {jobTitle} is now available for you. "
+                "Check your SkillTrace portal for matching jobs.",
+}
+_JOB_MATCH_MIN_SCORE = 50
+_JOB_MATCH_LIMIT = 5
+
+
+async def _queue_job_alert_notifications(
+    db: AsyncSession, posting: JobPosting, min_score: int = _JOB_MATCH_MIN_SCORE
+) -> int:
+    """Notify the top-matching candidates when a new job is posted.
+
+    Fire-and-forget delivery via the worker; failures leave rows queued.
+    """
+    if not posting.is_active:
+        return 0
+
+    matches = await score_candidates_for_job(db, posting, limit=_JOB_MATCH_LIMIT, min_score=min_score)
+
+    posting_state = (posting.state or "").strip().lower()
+
+    variables = {"jobTitle": posting.title}
+    body = render_template(_JOB_ALERT_SPEC["template"], variables)
+
+    sent = 0
+    for m in matches:
+        cand = (
+            await db.execute(select(Candidate).where(Candidate.id == UUID(m["candidate_id"])))
+        ).scalar_one_or_none()
+        if not cand:
+            continue
+
+        # Respect the candidate's preferred-locations filter when set.
+        prefs = cand.preferred_job_states or []
+        if prefs and posting_state:
+            norm_prefs = {str(p).strip().lower() for p in prefs}
+            if posting_state not in norm_prefs:
+                continue
+        notif = Notification(
+            recipient_id=cand.id,
+            recipient_type="candidate",
+            phone=cand.phone,
+            channel="whatsapp",
+            kind=_JOB_ALERT_SPEC["kind"],
+            title=_JOB_ALERT_SPEC["title"],
+            body=body,
+            status="queued",
+        )
+        db.add(notif)
+        await db.flush()
+        await db.refresh(notif)
+        try:
+            from worker_queue import enqueue_delivery
+            enqueue_delivery(str(notif.id))
+        except Exception:
+            pass
+        sent += 1
+
+    return sent
 
 
 class JobPostingCreate(BaseModel):
@@ -84,10 +152,20 @@ async def create_job_posting(
     user: dict = Depends(require_role("gov_admin", "employer")),
 ):
     posting = JobPosting(**body.model_dump())
+    if not posting.employer_id:
+        u = (
+            await db.execute(select(User).where(User.id == UUID(str(user["sub"]))))
+        ).scalar_one_or_none()
+        if u and u.employer_id:
+            posting.employer_id = u.employer_id
     posting.source_portal = "manual"
     db.add(posting)
     await db.flush()
     await db.refresh(posting)
+    try:
+        await _queue_job_alert_notifications(db, posting)
+    except Exception:
+        pass
     return posting
 
 

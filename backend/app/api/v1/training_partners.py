@@ -8,7 +8,7 @@ from app.database import get_db
 from app.dependencies import require_role
 from app.models.training_partner import TrainingPartner
 from app.core.exceptions import raise_not_found
-from app.schemas import TrainingPartnerCreate, TrainingPartnerResponse
+from app.schemas import TrainingPartnerCreate, TrainingPartnerResponse, TrainingPartnerUpdate
 
 router = APIRouter()
 
@@ -74,3 +74,54 @@ async def approve_training_partner(
     tp.approved_at = datetime.utcnow()
     await db.flush()
     return {"status": "approved", "partner_id": str(partner_id)}
+
+
+@router.patch("/{partner_id}", response_model=TrainingPartnerResponse)
+async def update_training_partner(
+    partner_id: UUID,
+    body: TrainingPartnerUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(require_role("gov_admin")),
+):
+    result = await db.execute(
+        select(TrainingPartner).where(TrainingPartner.id == partner_id)
+    )
+    tp = result.scalar_one_or_none()
+    if not tp:
+        raise_not_found("Training Partner", str(partner_id))
+
+    update_data = body.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(tp, field, value)
+
+    await db.flush()
+    await db.refresh(tp)
+    return tp
+
+
+@router.delete("/{partner_id}")
+async def delete_training_partner(
+    partner_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(require_role("gov_admin")),
+):
+    from fastapi import HTTPException
+    from app.models.course import Course
+    result = await db.execute(
+        select(TrainingPartner).where(TrainingPartner.id == partner_id)
+    )
+    tp = result.scalar_one_or_none()
+    if not tp:
+        raise_not_found("Training Partner", str(partner_id))
+
+    dep = await db.execute(
+        select(Course.id).where(Course.training_partner_id == partner_id).limit(1)
+    )
+    if dep.scalar_one_or_none():
+        raise HTTPException(
+            status_code=400,
+            detail="Training partner has associated courses and cannot be deleted",
+        )
+    await db.delete(tp)
+    await db.flush()
+    return {"status": "deleted", "partner_id": str(partner_id)}

@@ -96,7 +96,8 @@ async def score_candidates_for_job(
         results.append({
             "candidate_id": str(candidate.id),
             "full_name": candidate.full_name,
-            "phone": candidate.phone,
+            "phone": candidate.phone if candidate.allow_employer_contact else None,
+            "contact_allowed": bool(candidate.allow_employer_contact),
             "state": candidate.state,
             "district": candidate.district,
             "skill_overlap": score_payload["skill_overlap"],

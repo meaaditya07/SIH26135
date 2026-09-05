@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, Enum, String, Text
+    Boolean, Column, DateTime, Enum, JSON, String, Text
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
@@ -34,6 +34,12 @@ class Candidate(Base):
 
     # Skill Profile
     skill_tags = Column(JSONB, default=[])
+
+    # Privacy
+    allow_employer_contact = Column(Boolean, default=True, nullable=False)
+
+    # Job-alert preferences (states the candidate wants alerts for).
+    preferred_job_states = Column(JSON, default=list)
 
     # Meta
     is_active = Column(Boolean, default=True)

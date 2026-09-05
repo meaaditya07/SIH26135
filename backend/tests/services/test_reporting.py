@@ -18,8 +18,9 @@ from app.services.reporting_service import (
 
 
 def test_report_registry():
-    assert {"scheme-roi", "skill-gaps", "outcomes", "candidates", "applications"} <= set(REPORT_LABELS)
+    assert {"scheme-roi", "skill-gaps", "outcomes", "candidates", "applications", "regional-candidates"} <= set(REPORT_LABELS)
     assert is_reportable("scheme-roi") is True
+    assert is_reportable("regional-candidates") is True
     assert is_reportable("nonsense") is False
 
 
@@ -79,3 +80,12 @@ def test_columns_are_consistent_with_labels():
         assert cols, f"report {rt} has no columns"
         headers = [h for h, _ in cols]
         assert len(headers) == len(set(headers)), f"duplicate headers in {rt}"
+
+
+def test_regional_candidates_columns():
+    cols = report_columns("regional-candidates")
+    assert [h for h, _ in cols] == ["State", "District", "Candidate Count"]
+    row = {"state": "Karnataka", "district": "Bengaluru", "candidate_count": 4}
+    text = to_csv("regional-candidates", [row])
+    parsed = list(csv.reader(io.StringIO(text)))
+    assert dict(zip(parsed[0], parsed[1]))["Candidate Count"] == "4"

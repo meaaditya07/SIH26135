@@ -1,16 +1,22 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
 from typing import Optional
 from uuid import UUID
 from datetime import date
+import csv
+import io
 
 from app.database import get_db
 from app.dependencies import require_role
+from app.models.candidate import Candidate
+from app.models.enrollment import Enrollment
 from app.models.employment_outcome import EmploymentOutcome
 
 router = APIRouter()
+
+_INTERVALS = ("3_month", "6_month", "12_month")
 
 
 class OutcomeCreate(BaseModel):
@@ -85,6 +91,98 @@ async def create_outcome(
     await db.flush()
     await db.refresh(outcome)
     return outcome
+
+
+@router.post("/import")
+async def import_outcomes_csv(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(require_role("gov_admin", "training_partner")),
+):
+    """
+    CSV import for employment outcomes.
+
+    Columns: candidate_phone (required), survey_date (YYYY-MM-DD, required),
+    is_employed (yes/no/true/false/1/0, required), survey_interval
+    (3_month|6_month|12_month, default 3_month), current_job_title,
+    monthly_salary, job_location, is_self_employed, enrollment_id (optional —
+    resolved to the candidate's latest completed enrollment if omitted).
+    """
+    if not file.filename or not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+
+    content = await file.read()
+    try:
+        decoded = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        decoded = content.decode("latin-1")
+    reader = csv.DictReader(io.StringIO(decoded))
+
+    results = {"imported": 0, "errors": []}
+
+    def _parse_bool(v: str | None) -> bool:
+        return str(v or "").strip().lower() in ("yes", "true", "1", "y", "employed")
+
+    def _parse_interval(v: str | None) -> str:
+        raw = (v or "3_month").strip().lower()
+        normalized = {"3month": "3_month", "6month": "6_month", "12month": "12_month"}.get(raw, raw)
+        if normalized not in _INTERVALS:
+            raise ValueError(f"invalid survey_interval '{raw}'")
+        return normalized
+
+    for i, row in enumerate(reader, start=2):
+        try:
+            phone = (row.get("candidate_phone") or "").strip()
+            if not phone:
+                results["errors"].append({"row": i, "error": "candidate_phone is required"})
+                continue
+
+            cand = (
+                await db.execute(select(Candidate).where(Candidate.phone == phone))
+            ).scalar_one_or_none()
+            if not cand:
+                results["errors"].append({"row": i, "error": f"Candidate {phone} not found"})
+                continue
+
+            survey_date = date.fromisoformat((row.get("survey_date") or "").strip())
+            interval = _parse_interval(row.get("survey_interval"))
+            is_employed = _parse_bool(row.get("is_employed"))
+            salary_raw = (row.get("monthly_salary") or "").strip()
+
+            enrollment_id = None
+            if (row.get("enrollment_id") or "").strip():
+                enrollment_id = UUID((row.get("enrollment_id") or "").strip())
+            else:
+                eres = await db.execute(
+                    select(Enrollment)
+                    .where(Enrollment.candidate_id == cand.id)
+                    .order_by(Enrollment.enrollment_date.desc())
+                    .limit(1)
+                )
+                latest = eres.scalar_one_or_none()
+                if latest:
+                    enrollment_id = latest.id
+
+            outcome = EmploymentOutcome(
+                candidate_id=cand.id,
+                enrollment_id=enrollment_id,
+                survey_interval=interval,
+                survey_date=survey_date,
+                is_employed=is_employed,
+                is_self_employed=_parse_bool(row.get("is_self_employed")),
+                current_job_title=(row.get("current_job_title") or "").strip() or None,
+                monthly_salary=float(salary_raw) if salary_raw else None,
+                job_location=(row.get("job_location") or "").strip() or None,
+                response_channel="web_portal",
+                self_reported=False,
+            )
+            db.add(outcome)
+            results["imported"] += 1
+        except Exception as e:
+            results["errors"].append({"row": i, "error": str(e)})
+
+    await db.flush()
+    return results
 
 
 @router.get("/candidate/{candidate_id}/timeline")

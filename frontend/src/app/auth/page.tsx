@@ -42,20 +42,20 @@ export default function AuthPage() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-10">
       {/* Decorative glows */}
-      <div className="pointer-events-none absolute -left-20 top-0 h-96 w-96 rounded-full bg-brand-400/30 blur-3xl" />
-      <div className="pointer-events-none absolute -right-16 bottom-0 h-96 w-96 rounded-full bg-violet-400/30 blur-3xl" />
-      <div className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-400/15 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 top-0 h-96 w-96 rounded-full bg-violet-600/35 blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 bottom-0 h-96 w-96 rounded-full bg-brand-500/35 blur-3xl" />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-600/25 blur-3xl" />
 
       <div className="relative z-10 w-full max-w-md">
         {/* Brand */}
         <div className="mb-8 text-center animate-fade-up">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-violet-500 shadow-lg shadow-brand-500/30">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-brand-500 shadow-lg shadow-violet-600/40">
             <ShieldCheck className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-extrabold tracking-tight text-white">
             Sign in to <span className="gradient-text">SkillTrace</span>
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-400">
             Access your personalized portal
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function AuthPage() {
           className="glass-strong animate-fade-up delay-100 p-8"
         >
           <div className="mb-4">
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label className="mb-1.5 block text-sm font-medium text-slate-200">
               Phone number
             </label>
             <div className="relative">
@@ -83,7 +83,7 @@ export default function AuthPage() {
           </div>
 
           <div className="mb-2">
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+            <label className="mb-1.5 block text-sm font-medium text-slate-200">
               Password
             </label>
             <div className="relative">
@@ -99,7 +99,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setShow((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-200"
                 aria-label={show ? "Hide password" : "Show password"}
               >
                 {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -108,7 +108,7 @@ export default function AuthPage() {
           </div>
 
           {error && (
-            <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-600 animate-fade-in">
+            <p className="mt-3 rounded-xl bg-rose-500/15 px-3 py-2 text-sm text-rose-200 animate-fade-in">
               {error}
             </p>
           )}
@@ -143,13 +143,13 @@ export default function AuthPage() {
               <button
                 key={acc.role}
                 onClick={() => quickFill(acc)}
-                className="glass-inner flex items-center justify-between px-3 py-2.5 text-left transition hover:border-brand-300 hover:bg-white"
+                className="glass-inner flex items-center justify-between px-3 py-2.5 text-left transition hover:border-brand-300/60 hover:bg-white/[0.1]"
               >
                 <div>
-                  <p className="text-sm font-medium text-slate-700">{acc.label}</p>
+                  <p className="text-sm font-medium text-slate-200">{acc.label}</p>
                   <p className="text-xs text-slate-400">{acc.phone}</p>
                 </div>
-                <span className="chip bg-brand-50/70 text-brand-600">{acc.role.replace("_", " ")}</span>
+                <span className="chip bg-violet-500/25 text-violet-200">{acc.role.replace("_", " ")}</span>
               </button>
             ))}
           </div>

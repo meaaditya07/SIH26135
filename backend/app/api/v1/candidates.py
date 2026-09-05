@@ -38,12 +38,24 @@ async def get_my_profile(
     db: AsyncSession = Depends(get_db),
     user: dict = Depends(require_role("candidate")),
 ):
-    result = await db.execute(
-        select(Candidate).where(Candidate.id == UUID(user["sub"]))
-    )
+    from app.models.user import User
+
+    uid = UUID(user["sub"])
+    ures = await db.execute(select(User).where(User.id == uid))
+    u = ures.scalar_one_or_none()
+    if not u or not u.candidate_id:
+        dres = await db.execute(
+            select(Candidate).where(Candidate.id == uid)
+        )
+        fallback = dres.scalar_one_or_none()
+        if fallback:
+            return fallback
+        raise_not_found("Candidate", user["sub"])
+
+    result = await db.execute(select(Candidate).where(Candidate.id == u.candidate_id))
     candidate = result.scalar_one_or_none()
     if not candidate:
-        raise_not_found("Candidate", user["sub"])
+        raise_not_found("Candidate", str(u.candidate_id))
     return candidate
 
 
@@ -114,7 +126,7 @@ async def update_candidate(
     candidate_id: UUID,
     body: CandidateUpdate,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(require_role("candidate")),
+    user: dict = Depends(require_role("candidate", "gov_admin", "training_partner")),
 ):
     result = await db.execute(
         select(Candidate).where(Candidate.id == candidate_id)
@@ -130,3 +142,20 @@ async def update_candidate(
     await db.flush()
     await db.refresh(candidate)
     return candidate
+
+
+@router.delete("/{candidate_id}")
+async def delete_candidate(
+    candidate_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(require_role("gov_admin", "training_partner")),
+):
+    result = await db.execute(
+        select(Candidate).where(Candidate.id == candidate_id)
+    )
+    candidate = result.scalar_one_or_none()
+    if not candidate:
+        raise_not_found("Candidate", str(candidate_id))
+    candidate.is_active = False
+    await db.flush()
+    return {"status": "deactivated", "candidate_id": str(candidate_id)}

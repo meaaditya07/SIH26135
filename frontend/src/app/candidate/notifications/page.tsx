@@ -1,10 +1,16 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
-import { useMyNotifications, markNotificationRead } from "@/lib/hooks/useDashboard";
-import { Bell, BellOff, CheckCheck, MessageSquareText, Mail } from "lucide-react";
-import { useState } from "react";
+import {
+  useMyNotifications,
+  markNotificationRead,
+} from "@/lib/hooks/useDashboard";
+import { useRequireAuth } from "@/lib/hooks/useAuthGuard";
+import {
+  Bell, BellOff, CheckCheck, MessageSquareText, Mail,
+} from "lucide-react";
 
 const STATUS_STYLES: Record<string, string> = {
   queued: "bg-slate-100 text-slate-600",
@@ -17,18 +23,77 @@ const CHANNEL_ICON: Record<string, typeof Bell> = {
   sms: Mail,
 };
 
+const KIND_LABELS: Record<string, string> = {
+  application_status: "Application Update",
+  job_alert: "Job Alert",
+  survey_reminder: "Survey Reminder",
+  general: "General",
+};
+
+const CHANNEL_LABELS: Record<string, string> = {
+  whatsapp: "WhatsApp",
+  sms: "SMS",
+  web_portal: "Web Portal",
+};
+
 export default function NotificationsPage() {
-  const { data: notifications, loading } = useMyNotifications();
+  useRequireAuth("candidate");
+
+  const [statusFilter, setStatusFilter] = useState("");
+  const [kindFilter, setKindFilter] = useState("");
+  const { data: notifications, loading } = useMyNotifications(statusFilter || undefined);
   const [read, setRead] = useState<Set<string>>(new Set());
+  const [markingId, setMarkingId] = useState<string | null>(null);
+  const [markingAll, setMarkingAll] = useState(false);
 
-  async function handleRead(id: string) {
-    await markNotificationRead(id);
-    setRead((prev) => new Set(prev).add(id));
-  }
+  const kinds = useMemo(() => {
+    const set = new Set<string>();
+    for (const n of notifications) {
+      if (n.kind) set.add(n.kind);
+    }
+    return Array.from(set);
+  }, [notifications]);
 
-  const unread = notifications.filter(
+  const filteredNotifications = useMemo(() => {
+    if (!kindFilter) return notifications;
+    return notifications.filter((n) => n.kind === kindFilter);
+  }, [notifications, kindFilter]);
+
+  const unread = filteredNotifications.filter(
     (n) => !n.read_at && !read.has(n.id)
   ).length;
+
+  async function handleRead(id: string) {
+    setMarkingId(id);
+    try {
+      await markNotificationRead(id);
+      setRead((prev) => new Set(prev).add(id));
+    } catch {
+      // silent
+    } finally {
+      setMarkingId(null);
+    }
+  }
+
+  async function handleMarkAllRead() {
+    const unreadIds = filteredNotifications
+      .filter((n) => !n.read_at && !read.has(n.id))
+      .map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    setMarkingAll(true);
+    try {
+      await Promise.all(unreadIds.map((id) => markNotificationRead(id)));
+      setRead((prev) => {
+        const next = new Set(prev);
+        for (const id of unreadIds) next.add(id);
+        return next;
+      });
+    } catch {
+      // partial — some may have succeeded
+    } finally {
+      setMarkingAll(false);
+    }
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -49,6 +114,39 @@ export default function NotificationsPage() {
                   )}
                 </p>
               </div>
+              {unread > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  disabled={markingAll}
+                  className="btn-ghost text-xs px-3 py-1.5"
+                >
+                  <CheckCheck className="h-3.5 w-3.5" />
+                  {markingAll ? "Marking…" : "Mark all read"}
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-3 mb-6 animate-fade-up delay-100">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="input-glass w-auto text-sm"
+              >
+                <option value="">All statuses</option>
+                <option value="queued">Queued</option>
+                <option value="sent">Sent</option>
+                <option value="failed">Failed</option>
+              </select>
+              <select
+                value={kindFilter}
+                onChange={(e) => setKindFilter(e.target.value)}
+                className="input-glass w-auto text-sm"
+              >
+                <option value="">All kinds</option>
+                {kinds.map((k) => (
+                  <option key={k} value={k}>{KIND_LABELS[k] ?? k}</option>
+                ))}
+              </select>
             </div>
 
             {loading && (
@@ -59,7 +157,7 @@ export default function NotificationsPage() {
               </div>
             )}
 
-            {!loading && notifications.length === 0 && (
+            {!loading && filteredNotifications.length === 0 && (
               <div className="glass animate-scale-in flex flex-col items-center p-12 text-center">
                 <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300">
                   <BellOff className="h-6 w-6 text-slate-500" />
@@ -72,14 +170,14 @@ export default function NotificationsPage() {
             )}
 
             <div className="space-y-4">
-              {notifications.map((n, idx) => {
+              {filteredNotifications.map((n, idx) => {
                 const isRead = !!n.read_at || read.has(n.id);
                 const ChannelIcon = CHANNEL_ICON[n.channel] ?? Bell;
                 return (
                   <div
                     key={n.id}
                     className={`glass card-hover animate-fade-up p-5 ${
-                      isRead ? "" : "border-brand-300/70 bg-gradient-to-r from-brand-50/70 to-white/80"
+                      isRead ? "" : "border-violet-400/60 bg-gradient-to-r from-violet-600/25 to-brand-500/20"
                     }`}
                     style={{ animationDelay: `${idx * 0.05}s` }}
                   >
@@ -96,12 +194,12 @@ export default function NotificationsPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-slate-800">
-                            {n.title ?? "Notification"}
+                            {n.title ?? KIND_LABELS[n.kind ?? ""] ?? "Notification"}
                           </p>
                           <p className="mt-1 text-sm text-slate-600">{n.body}</p>
                           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-                            <span className="capitalize">{n.channel}</span>
-                            <span className="capitalize">{n.kind ?? "general"}</span>
+                            <span>{CHANNEL_LABELS[n.channel] ?? n.channel}</span>
+                            <span>{KIND_LABELS[n.kind ?? ""] ?? n.kind ?? "general"}</span>
                             <span>
                               {n.created_at
                                 ? new Date(n.created_at).toLocaleString()
@@ -120,9 +218,11 @@ export default function NotificationsPage() {
                       {!isRead && (
                         <button
                           onClick={() => handleRead(n.id)}
+                          disabled={markingId === n.id}
                           className="btn-ghost shrink-0 px-3 py-1.5 text-xs"
                         >
-                          <CheckCheck className="h-3.5 w-3.5" /> Mark read
+                          <CheckCheck className="h-3.5 w-3.5" />
+                          {markingId === n.id ? "Saving…" : "Mark read"}
                         </button>
                       )}
                     </div>

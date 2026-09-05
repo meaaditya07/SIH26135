@@ -17,6 +17,7 @@ _REPORTABLE_TYPES = {
     "outcomes",
     "candidates",
     "applications",
+    "regional-candidates",
 }
 
 REPORT_LABELS: dict[str, str] = {
@@ -25,6 +26,7 @@ REPORT_LABELS: dict[str, str] = {
     "outcomes": "Employment Outcomes",
     "candidates": "Candidate Registry",
     "applications": "Hiring Pipeline Applications",
+    "regional-candidates": "Regional Candidate Density",
 }
 
 
@@ -85,6 +87,11 @@ _COLUMNS: dict[str, list[tuple[str, str]]] = {
         ("Match Score", "match_score"),
         ("Applied At", "applied_at"),
         ("Updated At", "updated_at"),
+    ],
+    "regional-candidates": [
+        ("State", "state"),
+        ("District", "district"),
+        ("Candidate Count", "candidate_count"),
     ],
 }
 

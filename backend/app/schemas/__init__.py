@@ -45,7 +45,10 @@ class CandidateResponse(BaseModel):
     state: Optional[str]
     district: Optional[str]
     digilocker_status: str
+    verified_docs: dict = Field(default_factory=dict)
     skill_tags: list
+    allow_employer_contact: bool = True
+    preferred_job_states: list = Field(default_factory=list)
     is_active: bool
     created_at: datetime
 
@@ -59,6 +62,8 @@ class CandidateUpdate(BaseModel):
     district: Optional[str] = None
     pincode: Optional[str] = None
     skill_tags: Optional[list[str]] = None
+    allow_employer_contact: Optional[bool] = None
+    preferred_job_states: Optional[list[str]] = None
 
 
 # ─── Training Partner ───
@@ -87,6 +92,18 @@ class TrainingPartnerResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class TrainingPartnerUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=255)
+    registration_number: Optional[str] = Field(None, min_length=3, max_length=50)
+    pan_number: Optional[str] = Field(None, max_length=10)
+    state: Optional[str] = Field(None, min_length=2, max_length=100)
+    district: Optional[str] = Field(None, min_length=2, max_length=100)
+    address: Optional[str] = None
+    contact_person: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+
+
 # ─── Employer ───
 
 class EmployerCreate(BaseModel):
@@ -112,6 +129,17 @@ class EmployerResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class EmployerUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=255)
+    industry: Optional[str] = None
+    state: Optional[str] = None
+    district: Optional[str] = None
+    website: Optional[str] = None
+    contact_person: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+
+
 # ─── Course ───
 
 class CourseCreate(BaseModel):
@@ -131,12 +159,24 @@ class CourseResponse(BaseModel):
     name: str
     sector: str
     duration_weeks: int
+    total_seats: Optional[int] = None
     skills_taught: list
     scheme_id: Optional[str]
     cost_per_candidate: Optional[float]
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class CourseUpdate(BaseModel):
+    training_partner_id: Optional[UUID] = None
+    name: Optional[str] = Field(None, min_length=2, max_length=255)
+    sector: Optional[str] = Field(None, min_length=2, max_length=100)
+    duration_weeks: Optional[int] = Field(None, ge=1, le=200)
+    ncvt_code: Optional[str] = None
+    skills_taught: Optional[list[str]] = None
+    scheme_id: Optional[str] = None
+    cost_per_candidate: Optional[float] = None
 
 
 # ─── Job Posting ───
@@ -191,6 +231,8 @@ class SkillGapResponse(BaseModel):
 class SchemeAnalyticsResponse(BaseModel):
     scheme_id: str
     period: str
+    state: Optional[str] = None
+    district: Optional[str] = None
     total_enrolled: int
     total_completed: int
     completion_rate: Optional[float]

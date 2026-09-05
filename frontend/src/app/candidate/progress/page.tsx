@@ -1,102 +1,184 @@
 "use client";
 
+import Sidebar from "@/components/layout/Sidebar";
+import TopBar from "@/components/layout/TopBar";
+import {
+  useCandidateMe,
+  useOutcomeTimeline,
+} from "@/lib/hooks/useDashboard";
+import { useRequireAuth } from "@/lib/hooks/useAuthGuard";
+import { CheckCircle, Circle, Clock, Milestone, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { CheckCircle, Circle, Clock, Milestone } from "lucide-react";
 
-interface TimelineItem {
-  date: string;
-  title: string;
-  description: string;
-  status: "completed" | "pending" | "upcoming";
-}
-
-const timeline: TimelineItem[] = [
-  { date: "2026-03-10", title: "Enrolled in PMKVY IT Course", description: "Python Programming & Data Analysis (24 weeks)", status: "completed" },
-  { date: "2026-08-25", title: "Training Completed", description: "Certificate ID: PMKVY-2026-8842", status: "completed" },
-  { date: "2026-09-25", title: "3-Month Follow-up Survey", description: "WhatsApp survey will be sent", status: "pending" },
-  { date: "2026-12-25", title: "6-Month Follow-up Survey", description: "Scheduled survey", status: "upcoming" },
-  { date: "2027-06-25", title: "12-Month Follow-up Survey", description: "Scheduled survey", status: "upcoming" },
-];
-
-const statusStyles = {
-  completed: { icon: CheckCircle, color: "text-emerald-600 border-emerald-200 bg-emerald-50" },
-  pending: { icon: Clock, color: "text-amber-600 border-amber-200 bg-amber-50" },
-  upcoming: { icon: Circle, color: "text-slate-400 border-slate-200 bg-slate-50" },
+const INTERVAL_LABELS: Record<string, string> = {
+  "3_month": "3-Month Follow-up",
+  "6_month": "6-Month Follow-up",
+  "12_month": "12-Month Follow-up",
 };
 
-const outcomes = [
-  { interval: "3-Month", employed: true, title: "Junior Developer", salary: "₹18,000/mo", verified: true },
-  { interval: "6-Month", employed: null, title: "Pending response" as const, salary: "—", verified: false as const },
-  { interval: "12-Month", employed: null, title: "Not yet due" as const, salary: "—", verified: false as const },
-];
+const INTERVAL_ORDER = ["enrolled", "3_month", "6_month", "12_month"];
+
+function timelineStatus(entry: { is_employed: boolean } | null | undefined) {
+  if (!entry) return { icon: Circle, color: "text-slate-400 border-slate-200 bg-slate-50", label: "Upcoming" };
+  return {
+    icon: CheckCircle,
+    color: "text-emerald-600 border-emerald-200 bg-emerald-50",
+    label: entry.is_employed ? "Employed" : "Not Employed",
+  };
+}
 
 export default function ProgressPage() {
+  useRequireAuth("candidate");
+
+  const { data: candidate, loading: candLoading } = useCandidateMe();
+  const { data: timeline, loading: tlLoading } = useOutcomeTimeline(candidate?.id);
+
+  const loading = candLoading || tlLoading;
+
+  const timelineMap = new Map<string, (typeof timeline)[number]>();
+  for (const entry of timeline) {
+    timelineMap.set(entry.interval, entry);
+  }
+
+  const hasData = timeline.length > 0;
+
   return (
-    <main className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
-        <nav className="text-sm text-slate-500 mb-6">
-          <Link href="/candidate" className="hover:text-brand-600">← Back to Dashboard</Link>
-        </nav>
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <div className="flex-1">
+        <TopBar title="My Journey" subtitle="Training progress & employment outcomes" />
+        <main className="p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-6 animate-fade-up">
+              <h1 className="text-3xl font-extrabold text-slate-900 mb-1">My Journey</h1>
+              <p className="text-slate-500">Your training, follow-up surveys, and employment outcomes</p>
+            </div>
 
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">My Journey</h1>
-        <p className="text-slate-500 mb-8">Your training, follow-up surveys, and employment outcomes</p>
-
-        <div className="glass p-6 mb-8 animate-fade-up">
-          <h3 className="panel-title mb-4"><Milestone className="h-5 w-5 text-brand-600" /> Timeline</h3>
-          <div className="space-y-0">
-            {timeline.map((item, i) => {
-              const styles = statusStyles[item.status];
-              const Icon = styles.icon;
-              return (
-                <div key={i} className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className={`h-8 w-8 rounded-full border flex items-center justify-center ${styles.color}`}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    {i < timeline.length - 1 && <div className="w-px flex-1 bg-slate-200" />}
-                  </div>
-                  <div className="pb-8 flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-slate-700">{item.title}</h4>
-                      <span className="text-xs text-slate-400">{item.date}</span>
-                    </div>
-                    <p className="text-sm text-slate-500 mt-1">{item.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="glass overflow-hidden animate-fade-up delay-100">
-          <div className="p-4 border-b border-slate-100">
-            <h3 className="panel-title"><Milestone className="h-5 w-5 text-brand-600" /> Employment Outcomes</h3>
-          </div>
-          <div className="divide-y divide-slate-100">
-            {outcomes.map((o, i) => (
-              <div key={i} className="flex items-center justify-between p-4 hover:bg-white/70 transition-colors">
-                <div>
-                  <p className="font-medium text-slate-700">{o.interval} Follow-up</p>
-                  <p className="text-sm text-slate-500">
-                    {o.employed === true && <span className="text-emerald-600">{o.title} · {o.salary}</span>}
-                    {o.employed === null && o.title}
-                  </p>
-                </div>
-                <span className={`chip ${
-                  o.employed === true
-                    ? "bg-emerald-100 text-emerald-700"
-                    : o.employed === false
-                    ? "bg-slate-100 text-slate-600"
-                    : "bg-amber-100 text-amber-700"
-                }`}>
-                  {o.verified ? "Employer Verified" : o.employed === true ? "Self-Reported" : "Pending"}
-                </span>
+            {loading && (
+              <div className="space-y-4">
+                <div className="glass skeleton h-28" />
+                <div className="glass skeleton h-48" />
               </div>
-            ))}
+            )}
+
+            {!loading && !hasData && (
+              <div className="glass p-12 flex flex-col items-center text-center animate-fade-up">
+                <Milestone className="h-10 w-10 text-slate-300 mb-3" />
+                <p className="text-slate-600 font-medium">No outcome data yet</p>
+                <p className="text-sm text-slate-400 mt-1 mb-4">
+                  Complete your first follow-up survey to see your journey here.
+                </p>
+                <Link href="/candidate/matches" className="btn-glass text-xs">
+                  Browse jobs <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            )}
+
+            {!loading && hasData && (
+              <>
+                <div className="glass p-6 mb-8 animate-fade-up">
+                  <h3 className="panel-title mb-4"><Milestone className="h-5 w-5 text-brand-600" /> Timeline</h3>
+                  <div className="space-y-0">
+                    <div className="flex gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="h-8 w-8 rounded-full border flex items-center justify-center text-emerald-600 border-emerald-200 bg-emerald-50">
+                          <CheckCircle className="h-4 w-4" />
+                        </div>
+                        <div className="w-px flex-1 bg-slate-200" />
+                      </div>
+                      <div className="pb-8 flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-slate-700">Enrolled in Training</h4>
+                          <span className="text-xs text-slate-400">
+                            {candidate?.created_at ? new Date(candidate.created_at).toLocaleDateString() : "—"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-500 mt-1">Candidate profile registered</p>
+                      </div>
+                    </div>
+
+                    {INTERVAL_ORDER.filter((k) => k !== "enrolled").map((key, i, arr) => {
+                      const entry = timelineMap.get(key);
+                      const status = timelineStatus(entry);
+                      const Icon = status.icon;
+                      const isLast = i === arr.length - 1 && !timelineMap.has(arr[i + 1]);
+                      return (
+                        <div key={key} className="flex gap-4">
+                          <div className="flex flex-col items-center">
+                            <div className={`h-8 w-8 rounded-full border flex items-center justify-center ${status.color}`}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            {!isLast && <div className="w-px flex-1 bg-slate-200" />}
+                          </div>
+                          <div className="pb-8 flex-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-slate-700">
+                                {INTERVAL_LABELS[key] ?? key}
+                              </h4>
+                              <span className="text-xs text-slate-400">
+                                {entry?.survey_date ? new Date(entry.survey_date).toLocaleDateString() : "Not yet due"}
+                              </span>
+                            </div>
+                            {entry ? (
+                              <p className="text-sm text-slate-500 mt-1">
+                                {entry.is_employed
+                                  ? `${entry.job_title ?? "Employed"}${entry.monthly_salary ? ` · ₹${entry.monthly_salary.toLocaleString()}/mo` : ""}`
+                                  : "Not employed at this interval"}
+                              </p>
+                            ) : (
+                              <p className="text-sm text-slate-400 mt-1">Scheduled survey</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="glass overflow-hidden animate-fade-up delay-100">
+                  <div className="p-4 border-b border-slate-100">
+                    <h3 className="panel-title"><Milestone className="h-5 w-5 text-brand-600" /> Employment Outcomes</h3>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {INTERVAL_ORDER.filter((k) => k !== "enrolled").map((key) => {
+                      const entry = timelineMap.get(key);
+                      return (
+                        <div key={key} className="flex items-center justify-between p-4 hover:bg-white/70 transition-colors">
+                          <div>
+                            <p className="font-medium text-slate-700">
+                              {INTERVAL_LABELS[key] ?? key}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {entry?.is_employed && entry.job_title
+                                ? `${entry.job_title}${entry.monthly_salary ? ` · ₹${entry.monthly_salary.toLocaleString()}/mo` : ""}`
+                                : entry?.is_employed
+                                ? "Employed (details pending)"
+                                : entry
+                                ? "Not employed"
+                                : "Pending response"}
+                            </p>
+                          </div>
+                          <span className={`chip ${
+                            entry?.is_employed
+                              ? "bg-emerald-100 text-emerald-700"
+                              : entry
+                              ? "bg-slate-100 text-slate-600"
+                              : "bg-amber-100 text-amber-700"
+                          }`}>
+                            {entry?.channel === "employer" ? "Employer Verified"
+                              : entry?.is_employed ? "Self-Reported"
+                              : "Pending"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        </div>
+        </main>
       </div>
-    </main>
+    </div>
   );
 }

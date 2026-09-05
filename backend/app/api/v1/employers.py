@@ -8,7 +8,7 @@ from app.database import get_db
 from app.dependencies import require_role
 from app.models.employer import Employer
 from app.core.exceptions import raise_not_found
-from app.schemas import EmployerCreate, EmployerResponse
+from app.schemas import EmployerCreate, EmployerResponse, EmployerUpdate
 
 router = APIRouter()
 
@@ -58,3 +58,50 @@ async def create_employer(
     await db.flush()
     await db.refresh(emp)
     return emp
+
+
+@router.patch("/{employer_id}", response_model=EmployerResponse)
+async def update_employer(
+    employer_id: UUID,
+    body: EmployerUpdate,
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(require_role("gov_admin", "employer")),
+):
+    result = await db.execute(select(Employer).where(Employer.id == employer_id))
+    emp = result.scalar_one_or_none()
+    if not emp:
+        raise_not_found("Employer", str(employer_id))
+
+    update_data = body.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(emp, field, value)
+
+    await db.flush()
+    await db.refresh(emp)
+    return emp
+
+
+@router.delete("/{employer_id}")
+async def delete_employer(
+    employer_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(require_role("gov_admin")),
+):
+    from fastapi import HTTPException
+    from app.models.job_posting import JobPosting
+    result = await db.execute(select(Employer).where(Employer.id == employer_id))
+    emp = result.scalar_one_or_none()
+    if not emp:
+        raise_not_found("Employer", str(employer_id))
+
+    dep = await db.execute(
+        select(JobPosting.id).where(JobPosting.employer_id == employer_id).limit(1)
+    )
+    if dep.scalar_one_or_none():
+        raise HTTPException(
+            status_code=400,
+            detail="Employer has associated job postings and cannot be deleted",
+        )
+    await db.delete(emp)
+    await db.flush()
+    return {"status": "deleted", "employer_id": str(employer_id)}

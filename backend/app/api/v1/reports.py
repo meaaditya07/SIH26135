@@ -13,7 +13,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response, StreamingResponse
-from sqlalchemy import select
+from sqlalchemy import select, func, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -71,6 +71,23 @@ async def list_reports(
 
 
 async def _fetch_rows(report_type: str, db: AsyncSession, limit: int) -> list[dict]:
+    if report_type == "regional-candidates":
+        result = await db.execute(
+            select(
+                Candidate.state,
+                Candidate.district,
+                func.count(Candidate.id).label("candidate_count"),
+            )
+            .where(Candidate.state.isnot(None))
+            .group_by(Candidate.state, Candidate.district)
+            .order_by(text("candidate_count DESC"))
+            .limit(limit)
+        )
+        return [
+            {"state": r.state, "district": r.district, "candidate_count": int(r.candidate_count)}
+            for r in result.all()
+        ]
+
     model = {
         "scheme-roi": SchemeAnalytics,
         "skill-gaps": SkillGapScore,
@@ -79,7 +96,13 @@ async def _fetch_rows(report_type: str, db: AsyncSession, limit: int) -> list[di
         "applications": JobApplication,
     }[report_type]
 
-    query = select(model).order_by(getattr(model, "created_at", "id").desc()).limit(limit)
+    # Prefer a real timestamp column over a string fallback (getattr fallback
+    # returns the string "id", which breaks `.desc()`).
+    order_col = next(
+        (model.__table__.columns.get(name) for name in ("created_at", "computed_at", "updated_at", "applied_at", "id") if name in model.__table__.columns),
+        model.id,
+    )
+    query = select(model).order_by(order_col.desc()).limit(limit)
     result = await db.execute(query)
     return [_row_to_dict(r) for r in result.scalars().all()]
 
